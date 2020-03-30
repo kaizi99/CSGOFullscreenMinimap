@@ -308,8 +308,10 @@ int main()
 
                 triangle.setRotation(p.rotation);
                 triangle.setPosition(minimapPosition);
-                window.draw(triangle);
-
+                if (!p.dead) {
+                    window.draw(triangle);
+                }
+                
                 window.draw(p.playerNameString);
 
                 if (p.observerSlot != -1) {
