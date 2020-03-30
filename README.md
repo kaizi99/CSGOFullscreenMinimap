@@ -8,4 +8,7 @@ Then you have to put the gamestate_integration_minimap.cfg into your personal CS
 
 If you have placed the cfg file into the folder and the converted overviews into the working directory (where the .exe is) you can use the program. You don't have to launch the program before csgo or otherwise. As long as you are on spectator, data should be going into the program via CSGO's official gamestate API. 
 
+![Nuke Double-Overview](videos/nuke.gif)
+![Overpass with Bots](videos/overpass.gif)
+
 ### Have fun observing!
