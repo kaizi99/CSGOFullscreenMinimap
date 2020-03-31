@@ -45,7 +45,7 @@ struct loadedMap {
 
 loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window) {
     // Search for map in array (yes I know there is a binary search but the dataset is really
-    // small here so this is okay to do)
+    // small and unsorted so this is okay to do)
     mapinfo* selectedMap = nullptr;
     for (int i = 0; i < mapCount; i++) {
         if (maps[i].name == map) {
@@ -82,17 +82,30 @@ loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindo
 
 struct player {
     sf::Vector3f position;
+    sf::Vector2f minimapPosition;
+    bool isOnLowerLevel;
     int observerSlot;
     bool isCT;
     bool dead;
     float rotation;
 
-    sf::Text playerNameString;
+    sf::Text playerNameText;
 
-    player(nlohmann::json playerJson, sf::Font& playerFont) {
+    player(nlohmann::json playerJson, sf::Font& playerFont, loadedMap* loadedMap) {
         // Determine player 3D position
         std::string positionString = playerJson["position"];
-        sscanf_s(positionString.c_str(), "%f, %f, %f", &position.x, &position.y, &position.z);
+        sscanf(positionString.c_str(), "%f, %f, %f", &position.x, &position.y, &position.z);
+
+        // Calculate the position on the minimap based on the 3D position
+        sf::Vector3f minimapPosition3D = loadedMap->map->upperLeft - position;
+        minimapPosition = sf::Vector2f((-minimapPosition3D.x / loadedMap->map->scale), (minimapPosition3D.y / loadedMap->map->scale));
+
+        if (loadedMap->map->hasTwoLayers && minimapPosition3D.z > loadedMap->map->cutoff) {
+            isOnLowerLevel = true;
+        }
+        else {
+            isOnLowerLevel = false;
+        }
 
         // Determine observer slot
         if (!playerJson["observer_slot"].is_null()) {
@@ -119,20 +132,20 @@ struct player {
         }
 
         // Setup player name text
-        playerNameString.setString(playerJson["name"].get<std::string>());
-        playerNameString.setFillColor(isCT ? sf::Color::Cyan : sf::Color::Yellow);
-        playerNameString.setOutlineColor(sf::Color::Black);
-        playerNameString.setOutlineThickness(1);
-        playerNameString.setCharacterSize(15); 
-        playerNameString.setFont(playerFont);
-        sf::FloatRect localBounds = playerNameString.getLocalBounds();
-        playerNameString.setOrigin(floor(playerNameString.getLocalBounds().width), floor(playerNameString.getLocalBounds().height));
+        playerNameText.setString(playerJson["name"].get<std::string>());
+        playerNameText.setFillColor(isCT ? sf::Color::Cyan : sf::Color::Yellow);
+        playerNameText.setOutlineColor(sf::Color::Black);
+        playerNameText.setOutlineThickness(1);
+        playerNameText.setCharacterSize(dead ? 12 : 15); 
+        playerNameText.setFont(playerFont);
+        sf::FloatRect localBounds = playerNameText.getLocalBounds();
+        playerNameText.setOrigin(floor(playerNameText.getLocalBounds().width), floor(playerNameText.getLocalBounds().height));
 
         // Calculate rotation from 3D forward vector
         // There is probably a more clever way to do this but I came up with it and it works.
         std::string forwardString = playerJson["forward"];
         sf::Vector3f forward;
-        sscanf_s(forwardString.c_str(), "%f, %f, %f", &forward.x, &forward.y, &forward.z);
+        sscanf(forwardString.c_str(), "%f, %f, %f", &forward.x, &forward.y, &forward.z);
 
         float angle;
         if (forward.x > 0) {
@@ -212,6 +225,7 @@ int main()
     cross.loadFromFile("cross.png");
     sf::Sprite crossSprite(cross);
     crossSprite.setOrigin(5, 5);
+    crossSprite.setScale(sf::Vector2f(0.75, 0.75));
 
     // Setup the direction triangle
     sf::CircleShape triangle(10, 3);
@@ -286,36 +300,38 @@ int main()
             // Get all players from gamestate
             std::vector<player> players;
             for (auto p : gs["allplayers"].items()) {
-                players.push_back(player(p.value(), playerNameFont));
+                players.push_back(player(p.value(), playerNameFont, loadedMap));
             }
 
-            // Sort all players based on height in the map to draw boosted players over the booster
-            std::sort(players.begin(), players.end(), [](player a, player b) { return a.position.z < b.position.z; });
+            // Sort all dead players under the alive players to draw the alive player always above dead players
+            std::sort(players.begin(), players.end(), [](player a, player b) { if (a.dead && !b.dead) return true; else return false; });
+            
+            // Find the first alive player in the list
+            std::vector<player>::iterator it;
+            for (it = players.begin(); it != players.end(); ++it) {
+                if (!it->dead) {
+                    break;
+                }
+            }
+
+            // Sort all alive players based on height in the map to draw boosted players over the boosters and dead players
+            std::sort(it, players.end(), [](player a, player b) { return a.position.z < b.position.z; });
 
             for (auto p : players) {
-                // Calculate the position on the minimap based on the 3D position provided by gamestate
-                sf::Vector3f minimapPosition3D = loadedMap->map->upperLeft - p.position;
-                sf::Vector2f minimapPosition = sf::Vector2f((-minimapPosition3D.x / loadedMap->map->scale), (minimapPosition3D.y / loadedMap->map->scale));
-
-                if (loadedMap->map->hasTwoLayers && minimapPosition3D.z > loadedMap->map->cutoff) {
-                    minimapPosition.x += 1024;
-                }
-
-                // Draw the player's rotation if he isn't dead
+                // Draw the player's rotation and player circle if he isn't dead
                 if (!p.dead) {
                     triangle.setRotation(p.rotation);
-                    triangle.setPosition(minimapPosition);
+                    triangle.setPosition(p.minimapPosition);
                     window.draw(triangle);
+
+                    playerCircle.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                    playerCircle.setFillColor(p.isCT ? sf::Color::Cyan : sf::Color::Yellow);
+                    window.draw(playerCircle);
                 }
 
-                // Draw the player circle
-                playerCircle.setPosition(minimapPosition);
-                playerCircle.setFillColor(p.isCT ? sf::Color::Cyan : sf::Color::Yellow);
-                window.draw(playerCircle);
-
                 // Draw the player name
-                p.playerNameString.setPosition(sf::Vector2f(minimapPosition.x - 8, minimapPosition.y - 2));
-                window.draw(p.playerNameString);
+                p.playerNameText.setPosition(sf::Vector2f(p.minimapPosition.x - 8, p.minimapPosition.y - 2));
+                window.draw(p.playerNameText);
 
                 // Draw the player's observer slot over the circle
                 if (p.observerSlot != -1) {
@@ -325,13 +341,13 @@ int main()
                         playerCircle.setOutlineColor(sf::Color::Black);
                     }
                     sf::Text& obsText = observerSlotTexts[p.observerSlot];
-                    obsText.setPosition(sf::Vector2f(minimapPosition.x - 1, minimapPosition.y - 4)); 
+                    obsText.setPosition(sf::Vector2f(p.minimapPosition.x - 1, p.minimapPosition.y - 4));
                     window.draw(obsText);
                 }
 
                 // Draw either a cross if the player is dead or the current player rotation
                 if (p.dead) {
-                    crossSprite.setPosition(minimapPosition.x - 5, minimapPosition.y - 5);
+                    crossSprite.setPosition(p.minimapPosition.x - 5, p.minimapPosition.y - 5);
                     window.draw(crossSprite);
                 }
             }
