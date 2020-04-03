@@ -15,7 +15,7 @@
 
 #include "map.h"
 
-loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window) {
+loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window, draw_config config) {
     // Search for map in array (yes I know there is a binary search but the dataset is really
     // small and unsorted so this is okay to do)
     mapinfo* selectedMap = nullptr;
@@ -37,12 +37,16 @@ loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindo
     returnMap->mapTexture.loadFromFile(selectedMap->radarName);
     returnMap->mapSprite = sf::Sprite(returnMap->mapTexture);
 
-    if (selectedMap->hasTwoLayers) {
+    if (selectedMap->hasTwoLayers && config.drawTwoMaps) {
         window.setSize(sf::Vector2u(2048, 1024));
         window.setView(sf::View(sf::Vector2f(1024, 512), sf::Vector2f(2048, 1024)));
         returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
         returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
         returnMap->mapSpriteLower.setPosition(sf::Vector2f(1024, 0));
+    }
+    else if (selectedMap->hasTwoLayers) {
+        returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
+        returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
     }
     else {
         window.setSize(sf::Vector2u(1024, 1024));

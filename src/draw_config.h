@@ -15,26 +15,11 @@
 
 #pragma once
 
-#include <SFML/Graphics.hpp>
-
-#include "draw_config.h"
-
-struct mapinfo {
-    std::string name;
-    std::string radarName;
-    sf::Vector3f upperLeft;
-    float scale;
-    bool hasTwoLayers;
-    std::string lowerLayerName;
-    float cutoff;
+struct draw_config {
+    bool drawTwoMaps;
+    bool drawName;
+    int nameCharacterSize;
+    int nameDeadCharacterSize;
+    int circleSize;
+    int observerTextSize;
 };
-
-struct loadedMap {
-    mapinfo* map;
-    sf::Texture mapTexture;
-    sf::Texture mapTextureLower;
-    sf::Sprite mapSprite;
-    sf::Sprite mapSpriteLower;
-};
-
-loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window, draw_config config);

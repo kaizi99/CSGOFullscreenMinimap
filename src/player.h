@@ -25,13 +25,14 @@ struct player {
     sf::Vector2f minimapPosition;
     bool isOnLowerLevel;
     int observerSlot;
+    bool currentlyObserved;
     bool isCT;
     bool dead;
     float rotation;
     std::string steamID;
     sf::Text playerNameText;
 
-    player(nlohmann::json playerJson, std::string steamid, sf::Font& playerFont, loadedMap* loadedMap);
+    player(nlohmann::json playerJson, std::string steamid, nlohmann::json observedPlayerJson, sf::Font& playerFont, loadedMap* loadedMap);
 
     player interpolate(player b, float t);
 };

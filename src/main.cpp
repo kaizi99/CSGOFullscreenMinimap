@@ -24,6 +24,7 @@
 #include "player.h"
 #include "map.h"
 #include "interpolation.h"
+#include "draw_config.h"
 
 int main()
 {
@@ -75,6 +76,24 @@ int main()
     maps[6].scale = 4.7f;
     maps[6].hasTwoLayers = false;
 
+#define OBSERVER 0
+#define MINIMAP 1
+
+    draw_config configs[2];
+    configs[OBSERVER].drawTwoMaps = true;
+    configs[OBSERVER].drawName = true;
+    configs[OBSERVER].nameCharacterSize = 15;
+    configs[OBSERVER].nameDeadCharacterSize = 12;
+    configs[OBSERVER].circleSize = 10;
+    configs[OBSERVER].observerTextSize = 12;
+
+    configs[MINIMAP].drawTwoMaps = false;
+    configs[MINIMAP].drawName = false;
+    configs[MINIMAP].circleSize = 20;
+    configs[MINIMAP].observerTextSize = 23;
+
+    draw_config activeConfig = configs[MINIMAP];
+
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
     
@@ -86,11 +105,11 @@ int main()
     crossSprite.setScale(sf::Vector2f(0.75, 0.75));
 
     // Setup the direction triangle
-    sf::CircleShape triangle(10, 3);
+    sf::CircleShape triangle(activeConfig.circleSize, 3);
     triangle.setFillColor(sf::Color::White);
     triangle.setOutlineColor(sf::Color::Black);
     triangle.setOutlineThickness(1);
-    triangle.setOrigin(10, 18);
+    triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
 
     // Load the observer slot and player name fonts
     sf::Font observerSlotFont;
@@ -101,7 +120,7 @@ int main()
     // Setup the observer slot texts
     sf::Text observerSlotTexts[10];
     for (int i = 0; i < 10; i++) {
-        observerSlotTexts[i].setCharacterSize(15);
+        observerSlotTexts[i].setCharacterSize(activeConfig.observerTextSize);
         observerSlotTexts[i].setStyle(sf::Text::Bold);
         observerSlotTexts[i].setString(std::to_string(i));
         observerSlotTexts[i].setFillColor(sf::Color::Black);
@@ -114,8 +133,8 @@ int main()
     playerCircle.setFillColor(sf::Color::Cyan);
     playerCircle.setOutlineColor(sf::Color::Black);
     playerCircle.setOutlineThickness(2);
-    playerCircle.setRadius(10);
-    playerCircle.setOrigin(10, 10);
+    playerCircle.setRadius(activeConfig.circleSize);
+    playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
 
     // Initialize the ImGui and the SFML integration
     imgui_sfml_init("Roboto-Regular.ttf");
@@ -143,19 +162,12 @@ int main()
         imgui_sfml_begin_frame(window, 0.1f);
 
         // Clear screen
-        window.clear(sf::Color(0, 0, 0, 255));
+        window.clear(sf::Color(0, 0, 0, 0));
 
         auto gs = gamestate->get_latest_gamestate();
 
         // Only draw stuff if there is a supported map
         if (loadedMap != nullptr) {
-            // Draw the overviews
-            window.draw(loadedMap->mapSprite);
-
-            if (loadedMap->map->hasTwoLayers) {
-                window.draw(loadedMap->mapSpriteLower);
-            }
-
             // Get all players interpolated
             std::vector<player> players = interp.processInterpolation();
 
@@ -173,45 +185,94 @@ int main()
             // Sort all alive players based on height in the map to draw boosted players over the boosters and dead players
             std::sort(it, players.end(), [](player a, player b) { return a.position.z < b.position.z; });
 
+            bool currenltyObserverdIsLower = false;
+            for (auto p : players) {
+                if (p.currentlyObserved && p.isOnLowerLevel) {
+                    currenltyObserverdIsLower = true;
+                }
+            }
+
+            // Draw the overviews
+            if (loadedMap->map->hasTwoLayers && activeConfig.drawTwoMaps) {
+                window.draw(loadedMap->mapSpriteLower);
+            } else {
+                if (currenltyObserverdIsLower && loadedMap->map->hasTwoLayers)
+                    window.draw(loadedMap->mapSpriteLower);
+                else 
+                    window.draw(loadedMap->mapSprite);
+            }
+
             // Draw each player
             for (auto p : players) {
                 if (!p.dead) {
                     // Draw the player's rotation and player circle if he isn't dead
                     triangle.setRotation(p.rotation);
-                    triangle.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+
+                    if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
+                        playerCircle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                        triangle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                    }
+                    else {
+                        playerCircle.setPosition(p.minimapPosition);
+                        triangle.setPosition(p.minimapPosition);
+                    }
+
                     window.draw(triangle);
 
-                    playerCircle.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
-                    playerCircle.setFillColor(p.isCT ? sf::Color::Cyan : sf::Color::Yellow);
+                    sf::Color playerColor = p.isCT ? sf::Color::Cyan : sf::Color::Yellow;
+                    
+                    if (currenltyObserverdIsLower != p.isOnLowerLevel && !activeConfig.drawTwoMaps) {
+                        playerColor -= sf::Color(0, 0, 0, 100);
+                        triangle.setFillColor(sf::Color(255, 255, 255, 100));
+                    }
+                    else {
+                        triangle.setFillColor(sf::Color::White);
+                    }
+
+                    playerCircle.setFillColor(playerColor);
                     window.draw(playerCircle);
 
                     // Draw the player's observer slot over the circle
                     if (p.observerSlot != -1) {
-                        /*
-                        if (!gs["player"].is_null() && !gs["player"]["observer_slot"].is_null() && p.observerSlot == gs["player"]["observer_slot"].get<int>()) {
+                        if (p.currentlyObserved) {
                             // Draw a white circle outline if the player is currenlty observed
                             playerCircle.setOutlineColor(sf::Color::White);
                             window.draw(playerCircle);
                             playerCircle.setOutlineColor(sf::Color::Black);
                         }
-                        */
                         sf::Text& obsText = observerSlotTexts[p.observerSlot];
-                        obsText.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+
+                        obsText.setPosition(p.minimapPosition);
+                        if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
+                            obsText.move(1024, 0);
+                        }
+                       
                         obsText.move(-1, -4);
                         window.draw(obsText);
                     }
                 }
                 else {
                     // Draw a cross if he is dead
-                    crossSprite.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                    crossSprite.setPosition(p.minimapPosition);
+
+                    if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
+                        crossSprite.move(1024, 0);
+
                     crossSprite.move(-5, -5);
                     window.draw(crossSprite);
                 }
 
                 // Draw the player name
-                p.playerNameText.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                p.playerNameText.setPosition(p.minimapPosition);
+                if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
+                    p.playerNameText.move(1024, 0);
+
                 p.playerNameText.move(-8, -2);
-                window.draw(p.playerNameText);
+
+                p.playerNameText.setCharacterSize(p.dead ? activeConfig.nameDeadCharacterSize : activeConfig.nameCharacterSize);
+
+                if (activeConfig.drawName)
+                    window.draw(p.playerNameText);
             }
         }
 
@@ -221,7 +282,7 @@ int main()
         status.setPosition(0, 0);
         status.setFont(observerSlotFont);
         status.setFillColor(sf::Color::White);
-        window.draw(status);
+        //window.draw(status);
 
         imgui_sfml_end_frame(window);
 
@@ -231,7 +292,7 @@ int main()
         if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {
             if (loadedMap == nullptr || loadedMap->map->name != gs["map"]["name"].get<std::string>()) {
                 if (loadedMap != nullptr) delete loadedMap;
-                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window);
+                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
                 interp.currentlyLoadedMap = loadedMap;
             }
         }

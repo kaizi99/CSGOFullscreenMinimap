@@ -39,9 +39,6 @@ interpolation::~interpolation()
 
 }
 
-// There is something completely wrong with this, it interpolated between the first ever and the newest gamestate
-// and I don't know whats wrong but I'm not in the mood for debugging right now, so feel free to debug this yourself
-// Disclaimer: I have never done interpolation so there might be a better way to organize this
 std::vector<player> interpolation::processInterpolation()
 {
 	nlohmann::json arrivedGS;
@@ -54,8 +51,6 @@ std::vector<player> interpolation::processInterpolation()
 	if (newGamestate) {
 		arrivedGS = arrivedGamestate;
 		newGamestateArrived = false;
-		gamestateDelta = clockSinceLastGamestate.getElapsedTime();
-		clockSinceLastGamestate.restart();
 	}
 
 	arrivedGamestateMutex.unlock();
@@ -108,7 +103,7 @@ std::vector<player> interpolation::processInterpolation()
 		currentGamestate = std::vector<player>();
 
 		for (auto p : arrivedGS["allplayers"].items()) {
-			currentGamestate.push_back(player(p.value(), p.key(), playerFont, currentlyLoadedMap));
+			currentGamestate.push_back(player(p.value(), p.key(), arrivedGS["player"], playerFont, currentlyLoadedMap));
 		}
 	}
 

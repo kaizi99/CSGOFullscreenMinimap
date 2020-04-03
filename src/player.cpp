@@ -19,7 +19,7 @@
 #define M_PI_2 	1.57079632679489661923
 #include <cmath>
 
-player::player(nlohmann::json playerJson, std::string steamid, sf::Font& playerFont, loadedMap* loadedMap)
+player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json observedPlayerJson, sf::Font& playerFont, loadedMap* loadedMap)
 {
     // Determine player 3D position
     std::string positionString = playerJson["position"];
@@ -44,6 +44,13 @@ player::player(nlohmann::json playerJson, std::string steamid, sf::Font& playerF
     }
     else {
         observerSlot = -1;
+    }
+
+    if (!observedPlayerJson.is_null() && !observedPlayerJson["observer_slot"].is_null() && observerSlot == observedPlayerJson["observer_slot"].get<int>()) {
+        currentlyObserved = true;
+    }
+    else {
+        currentlyObserved = false;
     }
 
     // Determine team
@@ -102,18 +109,14 @@ sf::Vector3f interpolateVector(const sf::Vector3f& a, const sf::Vector3f b, floa
     return (1.0f - t) * a + t * b;
 }
 
-// Since the interpolation class is broken the interpolation is currenlty "disabled", see interpolation::processInterpolation();
 player player::interpolate(player b, float t)
 {
-    /*
     if (t > 1.0f) {
         t = 1.0f;
     }
 
-    b.position = interpolateVector(position, b.position, t);
     b.minimapPosition = (1.0f - t) * minimapPosition + t * b.minimapPosition;
     b.rotation = (1.0f - t) * rotation + t * b.rotation;
 
-    */
     return b;
 }
