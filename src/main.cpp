@@ -16,156 +16,14 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "imgui_sfml.h"
-#include "csgo_gamestate.h"
 #include <iostream>
 #include <algorithm>
 
-#define M_PI 3.14159265358979323846
-#define M_PI_2 	1.57079632679489661923
-#include <cmath>
-
-struct mapinfo {
-    std::string name;
-    std::string radarName;
-    sf::Vector3f upperLeft;
-    float scale;
-    bool hasTwoLayers;
-    std::string lowerLayerName;
-    float cutoff;
-};
-
-struct loadedMap {
-    mapinfo* map;
-    sf::Texture mapTexture;
-    sf::Texture mapTextureLower;
-    sf::Sprite mapSprite;
-    sf::Sprite mapSpriteLower;
-};
-
-loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window) {
-    // Search for map in array (yes I know there is a binary search but the dataset is really
-    // small and unsorted so this is okay to do)
-    mapinfo* selectedMap = nullptr;
-    for (int i = 0; i < mapCount; i++) {
-        if (maps[i].name == map) {
-            selectedMap = maps + i;
-        }
-    }
-
-    if (selectedMap == nullptr) {
-        return nullptr;
-    }
-
-    // allocate new map info
-    loadedMap* returnMap = new loadedMap();
-
-    // load map info
-    returnMap->map = selectedMap;
-    returnMap->mapTexture.loadFromFile(selectedMap->radarName);
-    returnMap->mapSprite = sf::Sprite(returnMap->mapTexture);
-
-    if (selectedMap->hasTwoLayers) {
-        window.setSize(sf::Vector2u(2048, 1024)); 
-        window.setView(sf::View(sf::Vector2f(1024, 512), sf::Vector2f(2048, 1024)));
-        returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
-        returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
-        returnMap->mapSpriteLower.setPosition(sf::Vector2f(1024, 0));
-    }
-    else {
-        window.setSize(sf::Vector2u(1024, 1024));
-        window.setView(sf::View(sf::Vector2f(512, 512), sf::Vector2f(1024, 1024)));
-    }
-
-    return returnMap;
-}
-
-struct player {
-    sf::Vector3f position;
-    sf::Vector2f minimapPosition;
-    bool isOnLowerLevel;
-    int observerSlot;
-    bool isCT;
-    bool dead;
-    float rotation;
-
-    sf::Text playerNameText;
-
-    player(nlohmann::json playerJson, sf::Font& playerFont, loadedMap* loadedMap) {
-        // Determine player 3D position
-        std::string positionString = playerJson["position"];
-        sscanf(positionString.c_str(), "%f, %f, %f", &position.x, &position.y, &position.z);
-
-        // Calculate the position on the minimap based on the 3D position
-        sf::Vector3f minimapPosition3D = loadedMap->map->upperLeft - position;
-        minimapPosition = sf::Vector2f((-minimapPosition3D.x / loadedMap->map->scale), (minimapPosition3D.y / loadedMap->map->scale));
-
-        if (loadedMap->map->hasTwoLayers && minimapPosition3D.z > loadedMap->map->cutoff) {
-            isOnLowerLevel = true;
-        }
-        else {
-            isOnLowerLevel = false;
-        }
-
-        // Determine observer slot
-        if (!playerJson["observer_slot"].is_null()) {
-            observerSlot = playerJson["observer_slot"].get<int>();
-        }
-        else {
-            observerSlot = -1;
-        }
-
-        // Determine team
-        std::string team = playerJson["team"];
-        if (team == "T") {
-            isCT = false;
-        }
-        else {
-            isCT = true;
-        }
-        
-        // Determine alive status
-        if (playerJson["state"]["health"].get<int>() == 0) {
-            dead = true;
-        } else {
-            dead = false;
-        }
-
-        // Setup player name text
-        playerNameText.setString(playerJson["name"].get<std::string>());
-        playerNameText.setFillColor(isCT ? sf::Color::Cyan : sf::Color::Yellow);
-        playerNameText.setOutlineColor(sf::Color::Black);
-        playerNameText.setOutlineThickness(1);
-        playerNameText.setCharacterSize(dead ? 12 : 15); 
-        playerNameText.setFont(playerFont);
-        sf::FloatRect localBounds = playerNameText.getLocalBounds();
-        playerNameText.setOrigin(floor(playerNameText.getLocalBounds().width), floor(playerNameText.getLocalBounds().height));
-
-        // Calculate rotation from 3D forward vector
-        // There is probably a more clever way to do this but I came up with it and it works.
-        std::string forwardString = playerJson["forward"];
-        sf::Vector3f forward;
-        sscanf(forwardString.c_str(), "%f, %f, %f", &forward.x, &forward.y, &forward.z);
-
-        float angle;
-        if (forward.x > 0) {
-            angle = acos(forward.y);
-        }
-        else if (forward.x < 0) {
-            angle = asin(forward.y) + M_PI + M_PI_2;
-        }
-        else {
-            if (forward.y > 0) {
-                angle = 0;
-            }
-            else {
-                angle = M_PI;
-            }
-        }
-
-        rotation = (angle / (M_PI * 2)) * 360;
-    }
-};
+#include "imgui_sfml.h"
+#include "csgo_gamestate.h"
+#include "player.h"
+#include "map.h"
+#include "interpolation.h"
 
 int main()
 {
@@ -174,7 +32,7 @@ int main()
     maps[0].name = "de_overpass";
     maps[0].radarName = "de_overpass_radar.png";
     maps[0].upperLeft = sf::Vector3f(-4831, 1781, 0);
-    maps[0].scale = 5.2;
+    maps[0].scale = 5.2f;
     maps[0].hasTwoLayers = false;
 
     maps[1].name = "de_nuke";
@@ -196,13 +54,13 @@ int main()
     maps[3].name = "de_dust2";
     maps[3].radarName = "de_dust2_radar.png";
     maps[3].upperLeft = sf::Vector3f(-2476, 3239, 0);
-    maps[3].scale = 4.4;
+    maps[3].scale = 4.4f;
     maps[3].hasTwoLayers = false;
 
     maps[4].name = "de_inferno";
     maps[4].radarName = "de_inferno_radar.png";
     maps[4].upperLeft = sf::Vector3f(-2087, 3870, 0);
-    maps[4].scale = 4.9;
+    maps[4].scale = 4.9f;
     maps[4].hasTwoLayers = false;
 
     maps[5].name = "de_mirage";
@@ -214,7 +72,7 @@ int main()
     maps[6].name = "de_train";
     maps[6].radarName = "de_train_radar.png";
     maps[6].upperLeft = sf::Vector3f(-2477, 2392, 0);
-    maps[6].scale = 4.7;
+    maps[6].scale = 4.7f;
     maps[6].hasTwoLayers = false;
 
     // Create the main window
@@ -246,7 +104,7 @@ int main()
         observerSlotTexts[i].setCharacterSize(15);
         observerSlotTexts[i].setStyle(sf::Text::Bold);
         observerSlotTexts[i].setString(std::to_string(i));
-        observerSlotTexts[i].setColor(sf::Color::Black);
+        observerSlotTexts[i].setFillColor(sf::Color::Black);
         observerSlotTexts[i].setFont(observerSlotFont);
         observerSlotTexts[i].setOrigin(floor(observerSlotTexts[i].getLocalBounds().width / 2), floor(observerSlotTexts[i].getLocalBounds().height / 2));
     }
@@ -264,6 +122,7 @@ int main()
 
     // Start the csgo gamestate http server on port 1338
     csgo_gamestate* gamestate = new csgo_gamestate(1338);
+    interpolation interp(gamestate);
 
     loadedMap* loadedMap = nullptr;
 
@@ -281,7 +140,7 @@ int main()
             imgui_sfml_process_event(event);
         }
 
-        imgui_sfml_begin_frame(window, 0.1);
+        imgui_sfml_begin_frame(window, 0.1f);
 
         // Clear screen
         window.clear(sf::Color(0, 0, 0, 255));
@@ -297,14 +156,11 @@ int main()
                 window.draw(loadedMap->mapSpriteLower);
             }
 
-            // Get all players from gamestate
-            std::vector<player> players;
-            for (auto p : gs["allplayers"].items()) {
-                players.push_back(player(p.value(), playerNameFont, loadedMap));
-            }
+            // Get all players interpolated
+            std::vector<player> players = interp.processInterpolation();
 
             // Sort all dead players under the alive players to draw the alive player always above dead players
-            std::sort(players.begin(), players.end(), [](player a, player b) { if (a.dead && !b.dead) return true; else return false; });
+            std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
             
             // Find the first alive player in the list
             std::vector<player>::iterator it;
@@ -317,39 +173,45 @@ int main()
             // Sort all alive players based on height in the map to draw boosted players over the boosters and dead players
             std::sort(it, players.end(), [](player a, player b) { return a.position.z < b.position.z; });
 
+            // Draw each player
             for (auto p : players) {
-                // Draw the player's rotation and player circle if he isn't dead
                 if (!p.dead) {
+                    // Draw the player's rotation and player circle if he isn't dead
                     triangle.setRotation(p.rotation);
-                    triangle.setPosition(p.minimapPosition);
+                    triangle.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
                     window.draw(triangle);
 
                     playerCircle.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
                     playerCircle.setFillColor(p.isCT ? sf::Color::Cyan : sf::Color::Yellow);
                     window.draw(playerCircle);
+
+                    // Draw the player's observer slot over the circle
+                    if (p.observerSlot != -1) {
+                        /*
+                        if (!gs["player"].is_null() && !gs["player"]["observer_slot"].is_null() && p.observerSlot == gs["player"]["observer_slot"].get<int>()) {
+                            // Draw a white circle outline if the player is currenlty observed
+                            playerCircle.setOutlineColor(sf::Color::White);
+                            window.draw(playerCircle);
+                            playerCircle.setOutlineColor(sf::Color::Black);
+                        }
+                        */
+                        sf::Text& obsText = observerSlotTexts[p.observerSlot];
+                        obsText.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                        obsText.move(-1, -4);
+                        window.draw(obsText);
+                    }
+                }
+                else {
+                    // Draw a cross if he is dead
+                    crossSprite.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                    crossSprite.move(-5, -5);
+                    window.draw(crossSprite);
                 }
 
                 // Draw the player name
-                p.playerNameText.setPosition(sf::Vector2f(p.minimapPosition.x - 8, p.minimapPosition.y - 2));
+                p.playerNameText.setPosition(!p.isOnLowerLevel ? p.minimapPosition : sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                p.playerNameText.move(-8, -2);
                 window.draw(p.playerNameText);
-
-                // Draw the player's observer slot over the circle
-                if (p.observerSlot != -1) {
-                    if (!gs["player"].is_null() && !gs["player"]["observer_slot"].is_null() &&  p.observerSlot == gs["player"]["observer_slot"].get<int>()) {
-                        playerCircle.setOutlineColor(sf::Color::White);
-                        window.draw(playerCircle);
-                        playerCircle.setOutlineColor(sf::Color::Black);
-                    }
-                    sf::Text& obsText = observerSlotTexts[p.observerSlot];
-                    obsText.setPosition(sf::Vector2f(p.minimapPosition.x - 1, p.minimapPosition.y - 4));
-                    window.draw(obsText);
-                }
-
-                // Draw either a cross if the player is dead or the current player rotation
-                if (p.dead) {
-                    crossSprite.setPosition(p.minimapPosition.x - 5, p.minimapPosition.y - 5);
-                    window.draw(crossSprite);
-                }
             }
         }
 
@@ -359,7 +221,6 @@ int main()
         status.setPosition(0, 0);
         status.setFont(observerSlotFont);
         status.setFillColor(sf::Color::White);
-        status.setColor(sf::Color::White);
         window.draw(status);
 
         imgui_sfml_end_frame(window);
@@ -371,6 +232,7 @@ int main()
             if (loadedMap == nullptr || loadedMap->map->name != gs["map"]["name"].get<std::string>()) {
                 if (loadedMap != nullptr) delete loadedMap;
                 loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window);
+                interp.currentlyLoadedMap = loadedMap;
             }
         }
     }

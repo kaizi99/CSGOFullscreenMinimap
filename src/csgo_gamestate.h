@@ -18,6 +18,7 @@
 
 #include "httplib.h"
 #include <thread>
+#include <functional>
 #include "json.hpp"
 
 class csgo_gamestate {
@@ -30,6 +31,8 @@ public:
     csgo_gamestate& operator=(const csgo_gamestate& other) = delete;
 
     nlohmann::json get_latest_gamestate();
+
+    void add_callback(std::function<void(nlohmann::json)> callback);
 private:
     void server_callback(const httplib::Request& req, httplib::Response& res);
 
@@ -39,6 +42,8 @@ private:
 
     std::mutex gamestateMutex;
     nlohmann::json lastGamestate;
+
+    std::vector<std::function<void(nlohmann::json)>> callbacks;
 };
 
 

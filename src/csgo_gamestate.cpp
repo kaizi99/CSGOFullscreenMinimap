@@ -34,6 +34,10 @@ void csgo_gamestate::server_callback(const httplib::Request &req, httplib::Respo
     lastGamestate = nlohmann::json::parse(req.body);
     gamestateMutex.unlock();
     res.status = 200;
+
+    for (auto callback : callbacks) {
+        callback(lastGamestate);
+    }
 }
 
 void csgo_gamestate::server_start(unsigned short port) {
@@ -47,4 +51,9 @@ void csgo_gamestate::server_start(unsigned short port) {
 nlohmann::json csgo_gamestate::get_latest_gamestate() {
     std::lock_guard<std::mutex> lock(gamestateMutex);
     return lastGamestate;
+}
+
+void csgo_gamestate::add_callback(std::function<void(nlohmann::json)> callback)
+{
+    callbacks.push_back(callback);
 }
