@@ -1,0 +1,89 @@
+{
+  "maps": {
+    "de_overpass": {
+      "name": "de_overpass",
+      "radarName": "de_overpass_radar.png",
+      "upperLeft": {
+        "x": -4831,
+        "y": 1781
+      },
+      "scale": 5.2
+    },
+    "de_dust2": {
+      "name": "de_dust2",
+      "radarName": "de_dust2_radar.png",
+      "upperLeft": {
+        "x": -2476,
+        "y": 3239
+      },
+      "scale": 4.4
+    },
+    "de_inferno": {
+      "name": "de_inferno",
+      "radarName": "de_inferno_radar.png",
+      "upperLeft": {
+        "x": -2087,
+        "y": 3870
+      },
+      "scale": 4.9
+    },
+    "de_mirage": {
+      "name": "de_mirage",
+      "radarName": "de_mirage_radar.png",
+      "upperLeft": {
+        "x": -3230,
+        "y": 1713
+      },
+      "scale": 5
+    },
+    "de_train": {
+      "name": "de_train",
+      "radarName": "de_train_radar.png",
+      "upperLeft": {
+        "x": -2477,
+        "y": 2392
+      },
+      "scale": 4.7
+    },
+    "de_nuke": {
+      "name": "de_nuke",
+      "radarName": "de_nuke_radar.png",
+      "upperLeft": {
+        "x": -3453,
+        "y": 2887
+      },
+      "scale": 7,
+      "lowerLayerName": "de_nuke_lower_radar.png",
+      "cutoff": 495
+    },
+    "de_vertigo": {
+      "name": "de_vertigo",
+      "radarName": "de_vertigo_radar.png",
+      "upperLeft": {
+        "x": -3168,
+        "y": 1762
+      },
+      "scale": 4,
+      "lowerLayerName": "de_vertigo_lower_radar.png",
+      "cutoff": -11700
+    }
+  },
+  "configs": {
+    "Observer": {
+      "drawTwoMaps": true,
+      "drawName": true,
+      "nameCharacterSize": 15,
+      "nameDeadCharacterSize": 12,
+      "circleSize": 10,
+      "observerTextSize": 12
+    },
+    "Minimap": {
+      "drawTwoMaps": false,
+      "drawName": false,
+      "nameCharacterSize": 0,
+      "nameDeadCharacterSize": 0,
+      "circleSize": 20,
+      "observerTextSize": 23
+    }
+  }
+}

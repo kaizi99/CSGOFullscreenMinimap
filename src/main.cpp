@@ -182,9 +182,7 @@ int main()
                 // Get all players interpolated
                 players = interp.processInterpolation();
             } else {
-                //std::cout << gamestate->get_latest_gamestate() << std::endl;
                 for (auto p : gs["allplayers"].items()) {
-                    //std::cout << p.value() << std::endl;
                     players.push_back(player(p.value(), p.key(), gs["player"], observerSlotFont, loadedMap));
                 }
             }
@@ -299,14 +297,6 @@ int main()
                     window.draw(p.playerNameText);
             }
         }
-
-        // Get the current connection status to CSGO and display it
-        sf::Text status;
-        status.setString(std::string("CSGO Status: ") + (gs.is_null() ? "disconnected" : "connected"));
-        status.setPosition(0, 0);
-        status.setFont(observerSlotFont);
-        status.setFillColor(sf::Color::White);
-        //window.draw(status);
 
         // Change the current map if it has changed in the game
         if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {

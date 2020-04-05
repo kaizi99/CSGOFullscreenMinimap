@@ -15,7 +15,11 @@
 
 #pragma once
 
+#include <vector>
+#include "json.hpp"
+
 struct draw_config {
+    std::string name;
     bool drawTwoMaps;
     bool drawName;
     int nameCharacterSize;
@@ -23,3 +27,6 @@ struct draw_config {
     int circleSize;
     int observerTextSize;
 };
+
+std::vector<draw_config> draw_config_parse_json(nlohmann::json input);
+nlohmann::json draw_config_to_json(std::vector<draw_config> configs);
