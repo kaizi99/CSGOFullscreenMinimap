@@ -92,7 +92,7 @@ int main()
     configs[MINIMAP].circleSize = 20;
     configs[MINIMAP].observerTextSize = 23;
 
-    draw_config activeConfig = configs[MINIMAP];
+    draw_config activeConfig = configs[OBSERVER];
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
@@ -145,6 +145,8 @@ int main()
 
     loadedMap* loadedMap = nullptr;
 
+    bool drawImGUI = true;
+
     // Start the game loop
     while (window.isOpen())
     {
@@ -155,6 +157,11 @@ int main()
             // Close window: exit
             if (event.type == sf::Event::Closed)
                 window.close();
+            else if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::T) {
+                    drawImGUI = !drawImGUI;
+                }
+            }
 
             imgui_sfml_process_event(event);
         }
@@ -193,13 +200,17 @@ int main()
             }
 
             // Draw the overviews
-            if (loadedMap->map->hasTwoLayers && activeConfig.drawTwoMaps) {
-                window.draw(loadedMap->mapSpriteLower);
-            } else {
-                if (currenltyObserverdIsLower && loadedMap->map->hasTwoLayers)
-                    window.draw(loadedMap->mapSpriteLower);
-                else 
+            if (loadedMap->map->hasTwoLayers) {
+                if (activeConfig.drawTwoMaps) {
                     window.draw(loadedMap->mapSprite);
+                    window.draw(loadedMap->mapSpriteLower);
+                }
+                else {
+                    window.draw(currenltyObserverdIsLower ? loadedMap->mapSpriteLower : loadedMap->mapSprite);
+                }
+            }
+            else {
+                window.draw(loadedMap->mapSprite);
             }
 
             // Draw each player
@@ -284,10 +295,6 @@ int main()
         status.setFillColor(sf::Color::White);
         //window.draw(status);
 
-        imgui_sfml_end_frame(window);
-
-        window.display();
-
         // Change the current map if it has changed in the game
         if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {
             if (loadedMap == nullptr || loadedMap->map->name != gs["map"]["name"].get<std::string>()) {
@@ -296,6 +303,34 @@ int main()
                 interp.currentlyLoadedMap = loadedMap;
             }
         }
+
+        if (drawImGUI) {
+            ImGui::Begin("Settings Window");
+
+            ImGui::Text("Hide this window by pressing T");
+
+            bool reloadSettings = false;
+
+            if (ImGui::Button("Set Minimap Mode")) {
+                activeConfig = configs[MINIMAP];
+                reloadSettings = true;
+            }
+
+            if (ImGui::Button("Set Observer Mode")) {
+                activeConfig = configs[OBSERVER];
+                reloadSettings = true;
+            }
+
+            if (reloadSettings) {
+                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
+            }
+
+            ImGui::End();
+        }
+
+        imgui_sfml_end_frame(window);
+
+        window.display();
     }
 
     imgui_sfml_destroy();

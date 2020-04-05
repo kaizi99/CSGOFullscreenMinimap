@@ -47,6 +47,8 @@ loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindo
     else if (selectedMap->hasTwoLayers) {
         returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
         returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
+        window.setSize(sf::Vector2u(1024, 1024));
+        window.setView(sf::View(sf::Vector2f(512, 512), sf::Vector2f(1024, 1024)));
     }
     else {
         window.setSize(sf::Vector2u(1024, 1024));
