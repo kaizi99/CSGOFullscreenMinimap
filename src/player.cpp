@@ -105,10 +105,6 @@ player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json ob
     rotation = (angle / (M_PI * 2)) * 360;
 }
 
-sf::Vector3f interpolateVector(const sf::Vector3f& a, const sf::Vector3f b, float t) {
-    return (1.0f - t) * a + t * b;
-}
-
 player player::interpolate(player b, float t)
 {
     if (t > 1.0f) {

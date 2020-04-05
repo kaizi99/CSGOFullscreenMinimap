@@ -32,6 +32,7 @@ csgo_gamestate::~csgo_gamestate() {
 void csgo_gamestate::server_callback(const httplib::Request &req, httplib::Response &res) {
     gamestateMutex.lock();
     lastGamestate = nlohmann::json::parse(req.body);
+    timeSinceLastUpdate.restart();
     gamestateMutex.unlock();
     res.status = 200;
 

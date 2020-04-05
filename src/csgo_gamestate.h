@@ -20,6 +20,8 @@
 #include <thread>
 #include <functional>
 #include "json.hpp"
+#include <SFML/System.hpp>
+#include <mutex>
 
 class csgo_gamestate {
 public:
@@ -30,6 +32,11 @@ public:
     csgo_gamestate(const csgo_gamestate& other) = delete;
     csgo_gamestate& operator=(const csgo_gamestate& other) = delete;
 
+    sf::Time timeSinceLastGamestate() {
+        std::lock_guard guard(gamestateMutex);
+        return timeSinceLastUpdate.getElapsedTime();
+    }
+
     nlohmann::json get_latest_gamestate();
 
     void add_callback(std::function<void(nlohmann::json)> callback);
@@ -39,6 +46,8 @@ private:
     std::thread server_thread;
     httplib::Server server;
     void server_start(unsigned short port);
+
+    sf::Clock timeSinceLastUpdate;
 
     std::mutex gamestateMutex;
     nlohmann::json lastGamestate;

@@ -96,6 +96,7 @@ int main()
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
+    window.setFramerateLimit(60);
     
     // Setup the cross sprite
     sf::Texture cross;
@@ -146,6 +147,7 @@ int main()
     loadedMap* loadedMap = nullptr;
 
     bool drawImGUI = true;
+    bool enableInterpolation = true;
 
     // Start the game loop
     while (window.isOpen())
@@ -175,8 +177,18 @@ int main()
 
         // Only draw stuff if there is a supported map
         if (loadedMap != nullptr) {
-            // Get all players interpolated
-            std::vector<player> players = interp.processInterpolation();
+            std::vector<player> players;
+            if (enableInterpolation) {
+                // Get all players interpolated
+                players = interp.processInterpolation();
+            } else {
+                //std::cout << gamestate->get_latest_gamestate() << std::endl;
+                for (auto p : gs["allplayers"].items()) {
+                    //std::cout << p.value() << std::endl;
+                    players.push_back(player(p.value(), p.key(), gs["player"], observerSlotFont, loadedMap));
+                }
+            }
+
 
             // Sort all dead players under the alive players to draw the alive player always above dead players
             std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
@@ -321,8 +333,12 @@ int main()
                 reloadSettings = true;
             }
 
+            ImGui::Checkbox("Enable Interpolation", &enableInterpolation);
+            ImGui::Text("Time since last Gamestate: %d ms", gamestate->timeSinceLastGamestate().asMilliseconds());
+
             if (reloadSettings) {
-                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
+                if (loadedMap != nullptr)
+                    loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
             }
 
             ImGui::End();

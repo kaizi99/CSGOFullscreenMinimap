@@ -22,7 +22,7 @@
 
 interpolation::interpolation(csgo_gamestate* gs)
 {
-	gs->add_callback([this](nlohmann::json gs) { 
+	gs->add_callback([this](nlohmann::json gs) {
 		arrivedGamestateMutex.lock();
 
 		newGamestateArrived = true;
@@ -102,9 +102,9 @@ std::vector<player> interpolation::processInterpolation()
 
 		currentGamestate = std::vector<player>();
 
-		for (auto p : arrivedGS["allplayers"].items()) {
-			currentGamestate.push_back(player(p.value(), p.key(), arrivedGS["player"], playerFont, currentlyLoadedMap));
-		}
+        for (auto p : arrivedGS["allplayers"].items()) {
+            currentGamestate.push_back(player(p.value(), p.key(), arrivedGS["player"], playerFont, currentlyLoadedMap));
+        }
 	}
 
 	return currentGS;
