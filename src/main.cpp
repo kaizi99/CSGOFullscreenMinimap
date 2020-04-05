@@ -265,6 +265,7 @@ int main()
                         }
                         sf::Text& obsText = observerSlotTexts[p.observerSlot];
 
+                        obsText.setCharacterSize(activeConfig.observerTextSize);
                         obsText.setPosition(p.minimapPosition);
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
                             obsText.move(1024, 0);
@@ -337,8 +338,13 @@ int main()
             ImGui::Text("Time since last Gamestate: %d ms", gamestate->timeSinceLastGamestate().asMilliseconds());
 
             if (reloadSettings) {
-                if (loadedMap != nullptr)
+                if (loadedMap != nullptr) {
                     loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
+                    playerCircle.setRadius(activeConfig.circleSize);
+                    playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
+                    triangle.setRadius(activeConfig.circleSize);
+                    triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
+                }
             }
 
             ImGui::End();
