@@ -19,13 +19,14 @@
 
 #include <SFML/OpenGL.hpp>
 
-void imgui_sfml_init(const std::string& font)
+void imgui_sfml_init(const std::string& font, int windowWidth, int windowHeight)
 {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF(font.c_str(), 13.0f);
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigDockingWithShift = false;
+
+	io.DisplaySize.x = windowWidth;
+	io.DisplaySize.y = windowHeight;
 
 	sf::Texture* tex = new sf::Texture();
 
@@ -85,14 +86,17 @@ void imgui_sfml_process_event(const sf::Event& event)
 	{
 		io.MouseWheel = event.mouseWheel.delta;
 	}
+
+	if (event.type == sf::Event::Resized) 
+	{
+		io.DisplaySize.x = event.size.width;
+		io.DisplaySize.y = event.size.height;
+	}
 }
 
 void imgui_sfml_begin_frame(const sf::RenderWindow& window, float deltaTime)
 {
 	ImGuiIO& io = ImGui::GetIO();
-	//io.DeltaTime = deltaTime;
-	io.DisplaySize.x = window.getSize().x;
-	io.DisplaySize.y = window.getSize().y;
 
 	sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
@@ -102,7 +106,6 @@ void imgui_sfml_begin_frame(const sf::RenderWindow& window, float deltaTime)
 	io.MouseDown[1] = sf::Mouse::isButtonPressed(sf::Mouse::Right);
 
 	ImGui::NewFrame();
-	//ImGui::DockSpaceOverViewport();
 }
 
 void imgui_sfml_end_frame(sf::RenderWindow& window)
@@ -110,10 +113,16 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 	ImGui::EndFrame();
 	ImGui::Render();
 
+	sf::View oldView = window.getView();
+
+	sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
+	window.setView(igview);
+
 	ImDrawData* draw_data = ImGui::GetDrawData();
 
 	ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
-    ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+    //ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+	ImVec2 clip_scale(1, 1);
 
 	for (int n = 0; n < draw_data->CmdListsCount; n++)
 	{
@@ -151,7 +160,7 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 				sf::RenderStates state;
 				state.texture = texture;
 
-				glEnable(GL_SCISSOR_TEST);
+				//glEnable(GL_SCISSOR_TEST);
 
 				// Project scissor/clipping rectangles into framebuffer space
                 ImVec4 clip_rect;
@@ -165,16 +174,17 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 
 				if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
                 {
+					/*
 					bool clip_origin_lower_left = true;
                     // Apply scissor/clipping rectangle
                     if (clip_origin_lower_left)
                         glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
                     else
                         glScissor((int)clip_rect.x, (int)clip_rect.y, (int)clip_rect.z, (int)clip_rect.w); // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
-
+					*/
 					window.draw(vbuffer, state);
 				}
-				glDisable(GL_SCISSOR_TEST);
+				//glDisable(GL_SCISSOR_TEST);
 
 				ImVec2 pos = draw_data->DisplayPos;
 			}
@@ -182,6 +192,8 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 			idx_buffer += pcmd->ElemCount;
 		}
 	}
+
+	window.setView(oldView);
 }
 
 void imgui_sfml_destroy()

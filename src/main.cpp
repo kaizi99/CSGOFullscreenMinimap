@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 #include "imgui_sfml.h"
 #include "csgo_gamestate.h"
@@ -28,81 +29,24 @@
 
 int main()
 {
-    // Hardcoded maps, this will be replaced by an ImGui interface and saved json
-    mapinfo maps[7];
-    maps[0].name = "de_overpass";
-    maps[0].radarName = "de_overpass_radar.png";
-    maps[0].upperLeft = sf::Vector3f(-4831, 1781, 0);
-    maps[0].scale = 5.2f;
-    maps[0].hasTwoLayers = false;
+    std::ifstream configFile("config.json");
+    nlohmann::json configJson = nlohmann::json::parse(configFile);
+    configFile.close();
 
-    maps[1].name = "de_nuke";
-    maps[1].radarName = "de_nuke_radar.png";
-    maps[1].upperLeft = sf::Vector3f(-3453, 2887, 0);
-    maps[1].scale = 7;
-    maps[1].hasTwoLayers = true;
-    maps[1].lowerLayerName = "de_nuke_lower_radar.png";
-    maps[1].cutoff = 495;
+    std::vector<mapinfo> mapinfos = mapinfo_parse_json(configJson["maps"]);
+    std::vector<draw_config> drawConfigs = draw_config_parse_json(configJson["configs"]);
 
-    maps[2].name = "de_vertigo";
-    maps[2].radarName = "de_vertigo_radar.png";
-    maps[2].upperLeft = sf::Vector3f(-3168, 1762, 0);
-    maps[2].scale = 4;
-    maps[2].hasTwoLayers = true;
-    maps[2].lowerLayerName = "de_vertigo_lower_radar.png";
-    maps[2].cutoff = -11700;
-
-    maps[3].name = "de_dust2";
-    maps[3].radarName = "de_dust2_radar.png";
-    maps[3].upperLeft = sf::Vector3f(-2476, 3239, 0);
-    maps[3].scale = 4.4f;
-    maps[3].hasTwoLayers = false;
-
-    maps[4].name = "de_inferno";
-    maps[4].radarName = "de_inferno_radar.png";
-    maps[4].upperLeft = sf::Vector3f(-2087, 3870, 0);
-    maps[4].scale = 4.9f;
-    maps[4].hasTwoLayers = false;
-
-    maps[5].name = "de_mirage";
-    maps[5].radarName = "de_mirage_radar.png";
-    maps[5].upperLeft = sf::Vector3f(-3230, 1713, 0);
-    maps[5].scale = 5;
-    maps[5].hasTwoLayers = false;
-
-    maps[6].name = "de_train";
-    maps[6].radarName = "de_train_radar.png";
-    maps[6].upperLeft = sf::Vector3f(-2477, 2392, 0);
-    maps[6].scale = 4.7f;
-    maps[6].hasTwoLayers = false;
-
-#define OBSERVER 0
-#define MINIMAP 1
-
-    draw_config configs[2];
-    configs[OBSERVER].drawTwoMaps = true;
-    configs[OBSERVER].drawName = true;
-    configs[OBSERVER].nameCharacterSize = 15;
-    configs[OBSERVER].nameDeadCharacterSize = 12;
-    configs[OBSERVER].circleSize = 10;
-    configs[OBSERVER].observerTextSize = 12;
-
-    configs[MINIMAP].drawTwoMaps = false;
-    configs[MINIMAP].drawName = false;
-    configs[MINIMAP].circleSize = 20;
-    configs[MINIMAP].observerTextSize = 23;
-
-    draw_config activeConfig = configs[OBSERVER];
+    draw_config activeConfig = drawConfigs[0];
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(200);
     
     // Setup the cross sprite
     sf::Texture cross;
     cross.loadFromFile("cross.png");
     sf::Sprite crossSprite(cross);
-    crossSprite.setOrigin(5, 5);
+    crossSprite.setOrigin(10, 10);
     crossSprite.setScale(sf::Vector2f(0.75, 0.75));
 
     // Setup the direction triangle
@@ -138,7 +82,7 @@ int main()
     playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
 
     // Initialize the ImGui and the SFML integration
-    imgui_sfml_init("Roboto-Regular.ttf");
+    imgui_sfml_init("Roboto-Regular.ttf", window.getSize().x, window.getSize().y);
 
     // Start the csgo gamestate http server on port 1338
     csgo_gamestate* gamestate = new csgo_gamestate(1338);
@@ -152,6 +96,8 @@ int main()
     // Start the game loop
     while (window.isOpen())
     {
+        static sf::Vector2f oldMousePosition = sf::Vector2f(0, 0);
+
         // Process events
         sf::Event event;
         while (window.pollEvent(event))
@@ -159,14 +105,44 @@ int main()
             // Close window: exit
             if (event.type == sf::Event::Closed)
                 window.close();
+            // Switch the Settings window
             else if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::T) {
                     drawImGUI = !drawImGUI;
                 }
             }
+            // Handle resize properly
+            else if (event.type == sf::Event::Resized) {
+                sf::View v = window.getView();
+                v.setSize(event.size.width, event.size.height);
+                v.setCenter(event.size.width / 2, event.size.height / 2);
+                window.setView(v);
+            }
+            // Adjust view with scrolling
+            else if (event.type == sf::Event::MouseWheelScrolled) {
+                sf::View v = window.getView();
+                sf::Vector2f size = v.getSize();
 
-            imgui_sfml_process_event(event);
+                size += size * event.mouseWheelScroll.delta * 0.1f;
+
+                v.setSize(size);
+                window.setView(v);
+            }
         }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && window.hasFocus()) {
+            sf::View v = window.getView();
+            sf::Vector2f center = v.getCenter();
+
+            center += (oldMousePosition - sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y));
+
+            v.setCenter(center);
+            window.setView(v);
+        }
+
+        imgui_sfml_process_event(event);
+
+        oldMousePosition = sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 
         imgui_sfml_begin_frame(window, 0.1f);
 
@@ -210,7 +186,7 @@ int main()
             }
 
             // Draw the overviews
-            if (loadedMap->map->hasTwoLayers) {
+            if (loadedMap->map.hasTwoLayers) {
                 if (activeConfig.drawTwoMaps) {
                     window.draw(loadedMap->mapSprite);
                     window.draw(loadedMap->mapSpriteLower);
@@ -261,15 +237,17 @@ int main()
                             window.draw(playerCircle);
                             playerCircle.setOutlineColor(sf::Color::Black);
                         }
+
                         sf::Text& obsText = observerSlotTexts[p.observerSlot];
 
                         obsText.setCharacterSize(activeConfig.observerTextSize);
+                        obsText.setOrigin(ceil(obsText.getLocalBounds().width / 2.0f), ceil(obsText.getLocalBounds().height / 2.0f));
                         obsText.setPosition(p.minimapPosition);
+                        
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
                             obsText.move(1024, 0);
                         }
                        
-                        obsText.move(-1, -4);
                         window.draw(obsText);
                     }
                 }
@@ -280,7 +258,6 @@ int main()
                     if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
                         crossSprite.move(1024, 0);
 
-                    crossSprite.move(-5, -5);
                     window.draw(crossSprite);
                 }
 
@@ -290,7 +267,6 @@ int main()
                     p.playerNameText.move(1024, 0);
 
                 p.playerNameText.move(-8, -2);
-
                 p.playerNameText.setCharacterSize(p.dead ? activeConfig.nameDeadCharacterSize : activeConfig.nameCharacterSize);
 
                 if (activeConfig.drawName)
@@ -300,9 +276,9 @@ int main()
 
         // Change the current map if it has changed in the game
         if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {
-            if (loadedMap == nullptr || loadedMap->map->name != gs["map"]["name"].get<std::string>()) {
+            if (loadedMap == nullptr || loadedMap->map.name != gs["map"]["name"].get<std::string>()) {
                 if (loadedMap != nullptr) delete loadedMap;
-                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
+                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
                 interp.currentlyLoadedMap = loadedMap;
             }
         }
@@ -315,12 +291,12 @@ int main()
             bool reloadSettings = false;
 
             if (ImGui::Button("Set Minimap Mode")) {
-                activeConfig = configs[MINIMAP];
+                activeConfig = drawConfigs.at(0);
                 reloadSettings = true;
             }
 
             if (ImGui::Button("Set Observer Mode")) {
-                activeConfig = configs[OBSERVER];
+                activeConfig = drawConfigs.at(1);
                 reloadSettings = true;
             }
 
@@ -329,7 +305,7 @@ int main()
 
             if (reloadSettings) {
                 if (loadedMap != nullptr) {
-                    loadedMap = loadMap(gs["map"]["name"].get<std::string>(), maps, 7, window, activeConfig);
+                    loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
                     playerCircle.setRadius(activeConfig.circleSize);
                     playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
                     triangle.setRadius(activeConfig.circleSize);

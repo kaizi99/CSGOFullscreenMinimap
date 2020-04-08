@@ -21,7 +21,7 @@
 
 #include <string>
 
-void imgui_sfml_init(const std::string& font);
+void imgui_sfml_init(const std::string& font, int windowWidth, int windowHeight);
 void imgui_sfml_process_event(const sf::Event& event);
 void imgui_sfml_begin_frame(const sf::RenderWindow& window, float deltaTime);
 void imgui_sfml_end_frame(sf::RenderWindow& window);

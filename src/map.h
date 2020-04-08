@@ -29,12 +29,15 @@ struct mapinfo {
     float cutoff;
 };
 
+std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input);
+nlohmann::json mapinfo_to_json(std::vector<mapinfo> input);
+
 struct loadedMap {
-    mapinfo* map;
+    mapinfo map;
     sf::Texture mapTexture;
     sf::Texture mapTextureLower;
     sf::Sprite mapSprite;
     sf::Sprite mapSpriteLower;
 };
 
-loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window, draw_config config);
+loadedMap* loadMap(std::string map, const std::vector<mapinfo>& maps, sf::RenderWindow& window, draw_config config);

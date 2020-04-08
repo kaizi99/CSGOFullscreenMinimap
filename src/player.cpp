@@ -19,6 +19,28 @@
 #define M_PI_2 	1.57079632679489661923
 #include <cmath>
 
+// Calculate rotation from 3D forward vector
+static float calculateAngle(sf::Vector3f forward) {
+    // There is probably a more clever way to do this but I came up with it and it works.
+    float angle;
+    if (forward.x > 0) {
+        angle = acos(forward.y);
+    }
+    else if (forward.x < 0) {
+        angle = asin(forward.y) + M_PI + M_PI_2;
+    }
+    else {
+        if (forward.y > 0) {
+            angle = 0;
+        }
+        else {
+            angle = M_PI;
+        }
+    }
+
+    return (angle / (M_PI * 2)) * 360;
+}
+
 player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json observedPlayerJson, sf::Font& playerFont, loadedMap* loadedMap)
 {
     // Determine player 3D position
@@ -28,10 +50,10 @@ player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json ob
     steamID = steamid;
 
     // Calculate the position on the minimap based on the 3D position
-    sf::Vector3f minimapPosition3D = loadedMap->map->upperLeft - position;
-    minimapPosition = sf::Vector2f((-minimapPosition3D.x / loadedMap->map->scale), (minimapPosition3D.y / loadedMap->map->scale));
+    sf::Vector3f minimapPosition3D = loadedMap->map.upperLeft - position;
+    minimapPosition = sf::Vector2f((-minimapPosition3D.x / loadedMap->map.scale), (minimapPosition3D.y / loadedMap->map.scale));
 
-    if (loadedMap->map->hasTwoLayers && minimapPosition3D.z > loadedMap->map->cutoff) {
+    if (loadedMap->map.hasTwoLayers && minimapPosition3D.z > loadedMap->map.cutoff) {
         isOnLowerLevel = true;
     }
     else {
@@ -80,39 +102,16 @@ player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json ob
     sf::FloatRect localBounds = playerNameText.getLocalBounds();
     playerNameText.setOrigin(floor(playerNameText.getLocalBounds().width), floor(playerNameText.getLocalBounds().height));
 
-    // Calculate rotation from 3D forward vector
-    // There is probably a more clever way to do this but I came up with it and it works.
     std::string forwardString = playerJson["forward"];
-    sf::Vector3f forward;
     sscanf(forwardString.c_str(), "%f, %f, %f", &forward.x, &forward.y, &forward.z);
-
-    float angle;
-    if (forward.x > 0) {
-        angle = acos(forward.y);
-    }
-    else if (forward.x < 0) {
-        angle = asin(forward.y) + M_PI + M_PI_2;
-    }
-    else {
-        if (forward.y > 0) {
-            angle = 0;
-        }
-        else {
-            angle = M_PI;
-        }
-    }
-
-    rotation = (angle / (M_PI * 2)) * 360;
+    rotation = calculateAngle(forward);
 }
 
 player player::interpolate(player b, float t)
 {
-    if (t > 1.0f) {
-        t = 1.0f;
-    }
-
     b.minimapPosition = (1.0f - t) * minimapPosition + t * b.minimapPosition;
-    b.rotation = (1.0f - t) * rotation + t * b.rotation;
+    b.forward = (1.0f - t) * forward + t * b.forward;
+    b.rotation = calculateAngle(b.forward);
 
     return b;
 }

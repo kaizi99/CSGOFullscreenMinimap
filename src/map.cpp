@@ -15,17 +15,68 @@
 
 #include "map.h"
 
-loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindow& window, draw_config config) {
+std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
+    std::vector<mapinfo> returnVector;
+
+    for (const auto& map : input.items()) {
+        mapinfo info;
+
+        info.name = map.key();
+        info.radarName = map.value()["radarName"].get<std::string>();
+        info.upperLeft.x = map.value()["upperLeft"]["x"].get<int>();
+        info.upperLeft.y = map.value()["upperLeft"]["y"].get<int>();
+        info.scale = map.value()["scale"].get<float>();
+
+        if (!map.value()["lowerLayerName"].is_null()) {
+            info.hasTwoLayers = true;
+            info.lowerLayerName = map.value()["lowerLayerName"].get<std::string>();
+            info.cutoff = map.value()["cutoff"].get<int>();
+        }
+
+        returnVector.push_back(info);
+    }
+
+    return returnVector;
+}
+
+nlohmann::json mapinfo_to_json(std::vector<mapinfo> input) {
+    nlohmann::json returnJson;
+
+    for (const mapinfo& info : input) {
+        nlohmann::json mapJson;
+        
+        mapJson["name"] = info.name;
+        mapJson["radarName"] = info.radarName;
+        mapJson["upperLeft"]["x"] = info.upperLeft.x;
+        mapJson["upperLeft"]["y"] = info.upperLeft.y;
+        mapJson["scale"] = info.scale;
+
+        if (info.hasTwoLayers) {
+            mapJson["lowerLayerName"] = info.lowerLayerName;
+            mapJson["cutoff"] = info.cutoff;
+        }
+
+        returnJson[info.name] = mapJson;
+    }
+
+    return returnJson;
+}
+
+loadedMap* loadMap(std::string map, const std::vector<mapinfo>& maps, sf::RenderWindow& window, draw_config config) {
     // Search for map in array (yes I know there is a binary search but the dataset is really
     // small and unsorted so this is okay to do)
-    mapinfo* selectedMap = nullptr;
-    for (int i = 0; i < mapCount; i++) {
-        if (maps[i].name == map) {
-            selectedMap = maps + i;
+    mapinfo selectedMap;
+
+    bool mapFound = false;
+
+    for (const mapinfo& iMap : maps) {
+        if (iMap.name == map) {
+            selectedMap = iMap;
+            mapFound = true;
         }
     }
 
-    if (selectedMap == nullptr) {
+    if (!mapFound) {
         return nullptr;
     }
 
@@ -34,25 +85,16 @@ loadedMap* loadMap(std::string map, mapinfo* maps, int mapCount, sf::RenderWindo
 
     // load map info
     returnMap->map = selectedMap;
-    returnMap->mapTexture.loadFromFile(selectedMap->radarName);
+    returnMap->mapTexture.loadFromFile(selectedMap.radarName);
     returnMap->mapSprite = sf::Sprite(returnMap->mapTexture);
 
-    if (selectedMap->hasTwoLayers && config.drawTwoMaps) {
-        window.setSize(sf::Vector2u(2048, 1024));
-        window.setView(sf::View(sf::Vector2f(1024, 512), sf::Vector2f(2048, 1024)));
-        returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
+    if (selectedMap.hasTwoLayers) {
+        returnMap->mapTextureLower.loadFromFile(selectedMap.lowerLayerName);
         returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
-        returnMap->mapSpriteLower.setPosition(sf::Vector2f(1024, 0));
-    }
-    else if (selectedMap->hasTwoLayers) {
-        returnMap->mapTextureLower.loadFromFile(selectedMap->lowerLayerName);
-        returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
-        window.setSize(sf::Vector2u(1024, 1024));
-        window.setView(sf::View(sf::Vector2f(512, 512), sf::Vector2f(1024, 1024)));
-    }
-    else {
-        window.setSize(sf::Vector2u(1024, 1024));
-        window.setView(sf::View(sf::Vector2f(512, 512), sf::Vector2f(1024, 1024)));
+        
+        if (config.drawTwoMaps) {
+            returnMap->mapSpriteLower.setPosition(sf::Vector2f(1024, 0));
+        }
     }
 
     return returnMap;

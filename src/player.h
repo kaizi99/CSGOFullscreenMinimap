@@ -29,6 +29,7 @@ struct player {
     bool isCT;
     bool dead;
     float rotation;
+    sf::Vector3f forward;
     std::string steamID;
     sf::Text playerNameText;
 

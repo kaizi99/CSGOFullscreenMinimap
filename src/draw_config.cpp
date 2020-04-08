@@ -25,7 +25,8 @@ std::vector<draw_config> draw_config_parse_json(nlohmann::json input) {
         extracted.drawTwoMaps = config.value()["drawTwoMaps"].get<bool>();
         extracted.drawName = config.value()["drawName"].get<bool>();
         extracted.nameCharacterSize = config.value()["nameCharacterSize"].get<int>();
-        extracted.nameDeadCharacterSize = config.value()["circleSize"].get<int>();
+        extracted.nameDeadCharacterSize = config.value()["nameDeadCharacterSize"].get<int>();
+        extracted.circleSize = config.value()["circleSize"].get<int>();
         extracted.observerTextSize = config.value()["observerTextSize"].get<int>();
 
         returnVector.push_back(extracted);
