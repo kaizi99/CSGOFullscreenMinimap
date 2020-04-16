@@ -19,6 +19,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <memory>
 
 #include "imgui_sfml.h"
 #include "csgo_gamestate.h"
@@ -26,15 +27,24 @@
 #include "map.h"
 #include "interpolation.h"
 #include "draw_config.h"
+#include "bomb.h"
 
 int main()
 {
     std::ifstream configFile("config.json");
+
+    if (!configFile.is_open()) {
+        std::cout << "Could not open config" << std::endl;
+        return -1;
+    }
+
     nlohmann::json configJson = nlohmann::json::parse(configFile);
     configFile.close();
 
     std::vector<mapinfo> mapinfos = mapinfo_parse_json(configJson["maps"]);
     std::vector<draw_config> drawConfigs = draw_config_parse_json(configJson["configs"]);
+
+    int gamestatePort = configJson["gamestatePort"].get<int>();
 
     draw_config activeConfig = drawConfigs[0];
 
@@ -48,6 +58,13 @@ int main()
     sf::Sprite crossSprite(cross);
     crossSprite.setOrigin(10, 10);
     crossSprite.setScale(sf::Vector2f(0.75, 0.75));
+
+    // Setup the bomb sprite
+    sf::Texture bombTexture;
+    bombTexture.loadFromFile("bomb.png");
+    sf::Sprite bombSprite(bombTexture);
+    bombSprite.setOrigin(10, 10);
+    bombSprite.setScale(activeConfig.bombIconScale, activeConfig.bombIconScale);
 
     // Setup the direction triangle
     sf::CircleShape triangle(activeConfig.circleSize, 3);
@@ -151,9 +168,13 @@ int main()
 
         auto gs = gamestate->get_latest_gamestate();
 
+        std::vector<player> players;
+
         // Only draw stuff if there is a supported map
         if (loadedMap != nullptr) {
-            std::vector<player> players;
+
+            bomb b(gs["bomb"], loadedMap);
+
             if (enableInterpolation) {
                 // Get all players interpolated
                 players = interp.processInterpolation();
@@ -241,8 +262,8 @@ int main()
                         sf::Text& obsText = observerSlotTexts[p.observerSlot];
 
                         obsText.setCharacterSize(activeConfig.observerTextSize);
-                        obsText.setOrigin(ceil(obsText.getLocalBounds().width / 2.0f), ceil(obsText.getLocalBounds().height / 2.0f));
-                        obsText.setPosition(p.minimapPosition);
+                        obsText.setOrigin(obsText.getLocalBounds().width / 2.0f, obsText.getLocalBounds().height / 2.0f);
+                        obsText.setPosition(p.minimapPosition.x, p.minimapPosition.y - (activeConfig.circleSize / 4));
                         
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
                             obsText.move(1024, 0);
@@ -272,6 +293,45 @@ int main()
                 if (activeConfig.drawName)
                     window.draw(p.playerNameText);
             }
+
+            if (b.state != bomb_state::UNDEFINED) {
+                sf::Vector2f bPos = b.minimapPosition;
+
+                if (b.state == bomb_state::CARRIED) {
+                    for (const auto& p : players) {
+                        if (p.steamID == b.carrierID) {
+                            bPos = p.minimapPosition;
+                            bPos.x += playerCircle.getRadius();
+                            bPos.y -= playerCircle.getRadius();
+                        }
+                    }
+                }
+
+                if (b.isOnLowerLevel && activeConfig.drawTwoMaps) {
+                    bombSprite.setPosition(bPos.x + 1024, bPos.y);
+                }
+                else {
+                    bombSprite.setPosition(bPos);
+                }
+
+                switch (b.state) {
+                case bomb_state::CARRIED:
+                    bombSprite.setColor(sf::Color::Yellow);
+                    break;
+                case bomb_state::DROPPED:
+                    bombSprite.setColor(sf::Color(255, 100, 33, 255));
+                    break;
+                case bomb_state::PLANTED:
+                    bombSprite.setColor(sf::Color::Red);
+                    break;
+                case bomb_state::DEFUSED:
+                    bombSprite.setColor(sf::Color::Green);
+                    break;
+                }
+
+                window.draw(bombSprite);
+            }
+            
         }
 
         // Change the current map if it has changed in the game
@@ -310,7 +370,12 @@ int main()
                     playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
                     triangle.setRadius(activeConfig.circleSize);
                     triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
+                    bombSprite.setScale(activeConfig.bombIconScale, activeConfig.bombIconScale);
                 }
+            }
+
+            if (ImGui::Button("Copy gamestate clipboard")) {
+                sf::Clipboard::setString(gamestate->get_latest_gamestate().dump());
             }
 
             ImGui::End();

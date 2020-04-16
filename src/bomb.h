@@ -15,19 +15,29 @@
 
 #pragma once
 
-#include <vector>
-#include "json.hpp"
+#include <SFML/Graphics.hpp>
+#include <json.hpp>
 
-struct draw_config {
-    std::string name;
-    bool drawTwoMaps;
-    bool drawName;
-    int nameCharacterSize;
-    int nameDeadCharacterSize;
-    float circleSize;
-    int observerTextSize;
-    float bombIconScale;
+#include "map.h"
+
+enum class bomb_state {
+	UNDEFINED,
+	CARRIED,
+	DROPPED,
+	PLANTED,
+	DEFUSED
 };
 
-std::vector<draw_config> draw_config_parse_json(nlohmann::json input);
-nlohmann::json draw_config_to_json(std::vector<draw_config> configs);
+struct bomb {
+	sf::Vector3f position;
+
+	bomb_state state;
+
+	std::string stateString;
+	std::string carrierID;
+
+	sf::Vector2f minimapPosition;
+	bool isOnLowerLevel;
+
+	bomb(nlohmann::json bombJson, loadedMap* map);
+};

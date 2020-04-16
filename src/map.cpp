@@ -23,14 +23,14 @@ std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
 
         info.name = map.key();
         info.radarName = map.value()["radarName"].get<std::string>();
-        info.upperLeft.x = map.value()["upperLeft"]["x"].get<int>();
-        info.upperLeft.y = map.value()["upperLeft"]["y"].get<int>();
+        info.upperLeft.x = map.value()["upperLeft"]["x"].get<float>();
+        info.upperLeft.y = map.value()["upperLeft"]["y"].get<float>();
         info.scale = map.value()["scale"].get<float>();
 
         if (!map.value()["lowerLayerName"].is_null()) {
             info.hasTwoLayers = true;
             info.lowerLayerName = map.value()["lowerLayerName"].get<std::string>();
-            info.cutoff = map.value()["cutoff"].get<int>();
+            info.cutoff = map.value()["cutoff"].get<float>();
         }
 
         returnVector.push_back(info);
