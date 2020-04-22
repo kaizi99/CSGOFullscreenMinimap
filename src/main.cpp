@@ -113,277 +113,284 @@ int main()
     // Start the game loop
     while (window.isOpen())
     {
-        static sf::Vector2f oldMousePosition = sf::Vector2f(0, 0);
+        try {
+            static sf::Vector2f oldMousePosition = sf::Vector2f(0, 0);
 
-        // Process events
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            // Close window: exit
-            if (event.type == sf::Event::Closed)
-                window.close();
-            // Switch the Settings window
-            else if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::T) {
-                    drawImGUI = !drawImGUI;
+            // Process events
+            sf::Event event;
+            while (window.pollEvent(event))
+            {
+                // Close window: exit
+                if (event.type == sf::Event::Closed)
+                    window.close();
+                // Switch the Settings window
+                else if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::T) {
+                        drawImGUI = !drawImGUI;
+                    }
+                }
+                // Handle resize properly
+                else if (event.type == sf::Event::Resized) {
+                    sf::View v = window.getView();
+                    v.setSize(event.size.width, event.size.height);
+                    v.setCenter(event.size.width / 2, event.size.height / 2);
+                    window.setView(v);
+                }
+                // Adjust view with scrolling
+                else if (event.type == sf::Event::MouseWheelScrolled) {
+                    sf::View v = window.getView();
+                    sf::Vector2f size = v.getSize();
+
+                    size += size * event.mouseWheelScroll.delta * 0.1f;
+
+                    v.setSize(size);
+                    window.setView(v);
                 }
             }
-            // Handle resize properly
-            else if (event.type == sf::Event::Resized) {
+
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && window.hasFocus()) {
                 sf::View v = window.getView();
-                v.setSize(event.size.width, event.size.height);
-                v.setCenter(event.size.width / 2, event.size.height / 2);
+                sf::Vector2f center = v.getCenter();
+
+                center += (oldMousePosition - sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y));
+
+                v.setCenter(center);
                 window.setView(v);
             }
-            // Adjust view with scrolling
-            else if (event.type == sf::Event::MouseWheelScrolled) {
-                sf::View v = window.getView();
-                sf::Vector2f size = v.getSize();
 
-                size += size * event.mouseWheelScroll.delta * 0.1f;
+            imgui_sfml_process_event(event);
 
-                v.setSize(size);
-                window.setView(v);
-            }
-        }
+            oldMousePosition = sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && window.hasFocus()) {
-            sf::View v = window.getView();
-            sf::Vector2f center = v.getCenter();
+            imgui_sfml_begin_frame(window, 0.1f);
 
-            center += (oldMousePosition - sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y));
+            // Clear screen
+            window.clear(sf::Color(0, 0, 0, 0));
 
-            v.setCenter(center);
-            window.setView(v);
-        }
+            auto gs = gamestate->get_latest_gamestate();
 
-        imgui_sfml_process_event(event);
+            std::vector<player> players;
 
-        oldMousePosition = sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
+            // Only draw stuff if there is a supported map
+            if (loadedMap != nullptr) {
 
-        imgui_sfml_begin_frame(window, 0.1f);
+                bomb b(gs["bomb"], loadedMap);
 
-        // Clear screen
-        window.clear(sf::Color(0, 0, 0, 0));
-
-        auto gs = gamestate->get_latest_gamestate();
-
-        std::vector<player> players;
-
-        // Only draw stuff if there is a supported map
-        if (loadedMap != nullptr) {
-
-            bomb b(gs["bomb"], loadedMap);
-
-            if (enableInterpolation) {
-                // Get all players interpolated
-                players = interp.processInterpolation();
-            } else {
-                for (auto p : gs["allplayers"].items()) {
-                    players.push_back(player(p.value(), p.key(), gs["player"], observerSlotFont, loadedMap));
+                if (enableInterpolation) {
+                    // Get all players interpolated
+                    players = interp.processInterpolation();
                 }
-            }
-
-
-            // Sort all dead players under the alive players to draw the alive player always above dead players
-            std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
-            
-            // Find the first alive player in the list
-            std::vector<player>::iterator it;
-            for (it = players.begin(); it != players.end(); ++it) {
-                if (!it->dead) {
-                    break;
+                else {
+                    for (auto p : gs["allplayers"].items()) {
+                        players.push_back(player(p.value(), p.key(), gs["player"], observerSlotFont, loadedMap));
+                    }
                 }
-            }
 
-            // Sort all alive players based on height in the map to draw boosted players over the boosters and dead players
-            std::sort(it, players.end(), [](player a, player b) { return a.position.z < b.position.z; });
 
-            bool currenltyObserverdIsLower = false;
-            for (auto p : players) {
-                if (p.currentlyObserved && p.isOnLowerLevel) {
-                    currenltyObserverdIsLower = true;
+                // Sort all dead players under the alive players to draw the alive player always above dead players
+                std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
+
+                // Find the first alive player in the list
+                std::vector<player>::iterator it;
+                for (it = players.begin(); it != players.end(); ++it) {
+                    if (!it->dead) {
+                        break;
+                    }
                 }
-            }
 
-            // Draw the overviews
-            if (loadedMap->map.hasTwoLayers) {
-                if (activeConfig.drawTwoMaps) {
+                // Sort all alive players based on height in the map to draw boosted players over the boosters and dead players
+                std::sort(it, players.end(), [](player a, player b) { return a.position.z < b.position.z; });
+
+                bool currenltyObserverdIsLower = false;
+                for (auto p : players) {
+                    if (p.currentlyObserved && p.isOnLowerLevel) {
+                        currenltyObserverdIsLower = true;
+                    }
+                }
+
+                // Draw the overviews
+                if (loadedMap->map.hasTwoLayers) {
+                    if (activeConfig.drawTwoMaps) {
+                        window.draw(loadedMap->mapSprite);
+                        window.draw(loadedMap->mapSpriteLower);
+                    }
+                    else {
+                        window.draw(currenltyObserverdIsLower ? loadedMap->mapSpriteLower : loadedMap->mapSprite);
+                    }
+                }
+                else {
                     window.draw(loadedMap->mapSprite);
-                    window.draw(loadedMap->mapSpriteLower);
                 }
-                else {
-                    window.draw(currenltyObserverdIsLower ? loadedMap->mapSpriteLower : loadedMap->mapSprite);
-                }
-            }
-            else {
-                window.draw(loadedMap->mapSprite);
-            }
 
-            // Draw each player
-            for (auto p : players) {
-                if (!p.dead) {
-                    // Draw the player's rotation and player circle if he isn't dead
-                    triangle.setRotation(p.rotation);
+                // Draw each player
+                for (auto p : players) {
+                    if (!p.dead) {
+                        // Draw the player's rotation and player circle if he isn't dead
+                        triangle.setRotation(p.rotation);
 
-                    if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                        playerCircle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
-                        triangle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
-                    }
-                    else {
-                        playerCircle.setPosition(p.minimapPosition);
-                        triangle.setPosition(p.minimapPosition);
-                    }
-
-                    window.draw(triangle);
-
-                    sf::Color playerColor = p.isCT ? sf::Color::Cyan : sf::Color::Yellow;
-                    
-                    if (currenltyObserverdIsLower != p.isOnLowerLevel && !activeConfig.drawTwoMaps) {
-                        playerColor -= sf::Color(0, 0, 0, 100);
-                        triangle.setFillColor(sf::Color(255, 255, 255, 100));
-                    }
-                    else {
-                        triangle.setFillColor(sf::Color::White);
-                    }
-
-                    playerCircle.setFillColor(playerColor);
-                    window.draw(playerCircle);
-
-                    // Draw the player's observer slot over the circle
-                    if (p.observerSlot != -1) {
-                        if (p.currentlyObserved) {
-                            // Draw a white circle outline if the player is currenlty observed
-                            playerCircle.setOutlineColor(sf::Color::White);
-                            window.draw(playerCircle);
-                            playerCircle.setOutlineColor(sf::Color::Black);
-                        }
-
-                        sf::Text& obsText = observerSlotTexts[p.observerSlot];
-
-                        obsText.setCharacterSize(activeConfig.observerTextSize);
-                        obsText.setOrigin(obsText.getLocalBounds().width / 2.0f, obsText.getLocalBounds().height / 2.0f);
-                        obsText.setPosition(p.minimapPosition.x, p.minimapPosition.y - (activeConfig.circleSize / 4));
-                        
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                            obsText.move(1024, 0);
+                            playerCircle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                            triangle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
                         }
-                       
-                        window.draw(obsText);
-                    }
-                }
-                else {
-                    // Draw a cross if he is dead
-                    crossSprite.setPosition(p.minimapPosition);
+                        else {
+                            playerCircle.setPosition(p.minimapPosition);
+                            triangle.setPosition(p.minimapPosition);
+                        }
 
+                        window.draw(triangle);
+
+                        sf::Color playerColor = p.isCT ? sf::Color::Cyan : sf::Color::Yellow;
+
+                        if (currenltyObserverdIsLower != p.isOnLowerLevel && !activeConfig.drawTwoMaps) {
+                            playerColor -= sf::Color(0, 0, 0, 100);
+                            triangle.setFillColor(sf::Color(255, 255, 255, 100));
+                        }
+                        else {
+                            triangle.setFillColor(sf::Color::White);
+                        }
+
+                        playerCircle.setFillColor(playerColor);
+                        window.draw(playerCircle);
+
+                        // Draw the player's observer slot over the circle
+                        if (p.observerSlot != -1) {
+                            if (p.currentlyObserved) {
+                                // Draw a white circle outline if the player is currenlty observed
+                                playerCircle.setOutlineColor(sf::Color::White);
+                                window.draw(playerCircle);
+                                playerCircle.setOutlineColor(sf::Color::Black);
+                            }
+
+                            sf::Text& obsText = observerSlotTexts[p.observerSlot];
+
+                            obsText.setCharacterSize(activeConfig.observerTextSize);
+                            obsText.setOrigin(obsText.getLocalBounds().width / 2.0f, obsText.getLocalBounds().height / 2.0f);
+                            obsText.setPosition(p.minimapPosition.x, p.minimapPosition.y - (activeConfig.circleSize / 4));
+
+                            if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
+                                obsText.move(1024, 0);
+                            }
+
+                            window.draw(obsText);
+                        }
+                    }
+                    else {
+                        // Draw a cross if he is dead
+                        crossSprite.setPosition(p.minimapPosition);
+
+                        if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
+                            crossSprite.move(1024, 0);
+
+                        window.draw(crossSprite);
+                    }
+
+                    // Draw the player name
+                    p.playerNameText.setPosition(p.minimapPosition);
                     if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
-                        crossSprite.move(1024, 0);
+                        p.playerNameText.move(1024, 0);
 
-                    window.draw(crossSprite);
+                    p.playerNameText.move(-8, -2);
+                    p.playerNameText.setCharacterSize(p.dead ? activeConfig.nameDeadCharacterSize : activeConfig.nameCharacterSize);
+
+                    if (activeConfig.drawName)
+                        window.draw(p.playerNameText);
                 }
 
-                // Draw the player name
-                p.playerNameText.setPosition(p.minimapPosition);
-                if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
-                    p.playerNameText.move(1024, 0);
+                if (b.state != bomb_state::UNDEFINED) {
+                    sf::Vector2f bPos = b.minimapPosition;
 
-                p.playerNameText.move(-8, -2);
-                p.playerNameText.setCharacterSize(p.dead ? activeConfig.nameDeadCharacterSize : activeConfig.nameCharacterSize);
+                    if (b.state == bomb_state::CARRIED) {
+                        for (const auto& p : players) {
+                            if (p.steamID == b.carrierID) {
+                                bPos = p.minimapPosition;
+                                bPos.x += playerCircle.getRadius();
+                                bPos.y -= playerCircle.getRadius();
+                            }
+                        }
+                    }
 
-                if (activeConfig.drawName)
-                    window.draw(p.playerNameText);
+                    if (b.isOnLowerLevel && activeConfig.drawTwoMaps) {
+                        bombSprite.setPosition(bPos.x + 1024, bPos.y);
+                    }
+                    else {
+                        bombSprite.setPosition(bPos);
+                    }
+
+                    switch (b.state) {
+                    case bomb_state::CARRIED:
+                        bombSprite.setColor(sf::Color::Yellow);
+                        break;
+                    case bomb_state::DROPPED:
+                        bombSprite.setColor(sf::Color(255, 100, 33, 255));
+                        break;
+                    case bomb_state::PLANTED:
+                        bombSprite.setColor(sf::Color::Red);
+                        break;
+                    case bomb_state::DEFUSED:
+                        bombSprite.setColor(sf::Color::Green);
+                        break;
+                    }
+
+                    window.draw(bombSprite);
+                }
+
             }
 
-            if (b.state != bomb_state::UNDEFINED) {
-                sf::Vector2f bPos = b.minimapPosition;
+            // Change the current map if it has changed in the game
+            if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {
+                if (loadedMap == nullptr || loadedMap->map.name != gs["map"]["name"].get<std::string>()) {
+                    if (loadedMap != nullptr) delete loadedMap;
+                    loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
+                    interp.currentlyLoadedMap = loadedMap;
+                }
+            }
 
-                if (b.state == bomb_state::CARRIED) {
-                    for (const auto& p : players) {
-                        if (p.steamID == b.carrierID) {
-                            bPos = p.minimapPosition;
-                            bPos.x += playerCircle.getRadius();
-                            bPos.y -= playerCircle.getRadius();
-                        }
+            if (drawImGUI) {
+                ImGui::Begin("Settings Window");
+
+                ImGui::Text("Hide this window by pressing T");
+
+                bool reloadSettings = false;
+
+                if (ImGui::Button("Set Minimap Mode")) {
+                    activeConfig = drawConfigs.at(0);
+                    reloadSettings = true;
+                }
+
+                if (ImGui::Button("Set Observer Mode")) {
+                    activeConfig = drawConfigs.at(1);
+                    reloadSettings = true;
+                }
+
+                ImGui::Checkbox("Enable Interpolation", &enableInterpolation);
+                ImGui::Text("Time since last Gamestate: %d ms", gamestate->timeSinceLastGamestate().asMilliseconds());
+
+                if (reloadSettings) {
+                    if (loadedMap != nullptr) {
+                        loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
+                        playerCircle.setRadius(activeConfig.circleSize);
+                        playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
+                        triangle.setRadius(activeConfig.circleSize);
+                        triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
+                        bombSprite.setScale(activeConfig.bombIconScale, activeConfig.bombIconScale);
                     }
                 }
 
-                if (b.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                    bombSprite.setPosition(bPos.x + 1024, bPos.y);
-                }
-                else {
-                    bombSprite.setPosition(bPos);
+                if (ImGui::Button("Copy gamestate clipboard")) {
+                    sf::Clipboard::setString(gamestate->get_latest_gamestate().dump());
                 }
 
-                switch (b.state) {
-                case bomb_state::CARRIED:
-                    bombSprite.setColor(sf::Color::Yellow);
-                    break;
-                case bomb_state::DROPPED:
-                    bombSprite.setColor(sf::Color(255, 100, 33, 255));
-                    break;
-                case bomb_state::PLANTED:
-                    bombSprite.setColor(sf::Color::Red);
-                    break;
-                case bomb_state::DEFUSED:
-                    bombSprite.setColor(sf::Color::Green);
-                    break;
-                }
-
-                window.draw(bombSprite);
+                ImGui::End();
             }
-            
+
+            imgui_sfml_end_frame(window);
+
+            window.display();
+        } catch (nlohmann::json::exception e)
+        {
+            std::cerr << "A JSON exception occured. If this doesn't happen more than a couple times an hour you can ignore this." << std::endl;
+            std::cerr << "JSON exceptions happen when CSGO sends information with certain critical information either missing or malformed." << std::endl;
         }
-
-        // Change the current map if it has changed in the game
-        if (!gs.is_null() && !gs["map"].is_null() && !gs["map"]["name"].is_null()) {
-            if (loadedMap == nullptr || loadedMap->map.name != gs["map"]["name"].get<std::string>()) {
-                if (loadedMap != nullptr) delete loadedMap;
-                loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
-                interp.currentlyLoadedMap = loadedMap;
-            }
-        }
-
-        if (drawImGUI) {
-            ImGui::Begin("Settings Window");
-
-            ImGui::Text("Hide this window by pressing T");
-
-            bool reloadSettings = false;
-
-            if (ImGui::Button("Set Minimap Mode")) {
-                activeConfig = drawConfigs.at(0);
-                reloadSettings = true;
-            }
-
-            if (ImGui::Button("Set Observer Mode")) {
-                activeConfig = drawConfigs.at(1);
-                reloadSettings = true;
-            }
-
-            ImGui::Checkbox("Enable Interpolation", &enableInterpolation);
-            ImGui::Text("Time since last Gamestate: %d ms", gamestate->timeSinceLastGamestate().asMilliseconds());
-
-            if (reloadSettings) {
-                if (loadedMap != nullptr) {
-                    loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
-                    playerCircle.setRadius(activeConfig.circleSize);
-                    playerCircle.setOrigin(activeConfig.circleSize, activeConfig.circleSize);
-                    triangle.setRadius(activeConfig.circleSize);
-                    triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
-                    bombSprite.setScale(activeConfig.bombIconScale, activeConfig.bombIconScale);
-                }
-            }
-
-            if (ImGui::Button("Copy gamestate clipboard")) {
-                sf::Clipboard::setString(gamestate->get_latest_gamestate().dump());
-            }
-
-            ImGui::End();
-        }
-
-        imgui_sfml_end_frame(window);
-
-        window.display();
     }
 
     imgui_sfml_destroy();

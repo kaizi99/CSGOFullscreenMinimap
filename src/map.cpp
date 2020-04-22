@@ -31,6 +31,8 @@ std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
             info.hasTwoLayers = true;
             info.lowerLayerName = map.value()["lowerLayerName"].get<std::string>();
             info.cutoff = map.value()["cutoff"].get<float>();
+        } else {
+            info.hasTwoLayers = false;
         }
 
         returnVector.push_back(info);
