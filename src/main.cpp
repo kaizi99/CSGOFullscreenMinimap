@@ -380,6 +380,18 @@ int main()
                     sf::Clipboard::setString(gamestate->get_latest_gamestate().dump());
                 }
 
+            	if (ImGui::Button("Copy SteamIDs to clipboard"))
+            	{
+                    std::string clipboardString;
+                    for (player p : players)
+                    {
+                        clipboardString += p.steamID + " - ";
+                        clipboardString += p.playerNameText.getString().toAnsiString() + "\n";
+					}
+
+                    sf::Clipboard::setString(clipboardString);
+            	}
+
                 ImGui::End();
             }
 
