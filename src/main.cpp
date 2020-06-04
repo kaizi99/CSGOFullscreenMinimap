@@ -29,8 +29,16 @@
 #include "draw_config.h"
 #include "bomb.h"
 
+#ifdef _MSC_VER
+#include <direct.h>
+#endif
+
 int main()
 {
+#ifdef _MSC_VER && _DEBUG
+    chdir("../../../workdir/");
+#endif
+
     std::ifstream configFile("config.json");
 
     if (!configFile.is_open()) {
@@ -344,26 +352,28 @@ int main()
                 }
 
                 // Bauchbinde
-                sf::View oldView = window.getView();
+                if (activeConfig.drawBauchbinde) {
+                    sf::View oldView = window.getView();
 
-                sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
-                window.setView(igview);
+                    sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
+                    window.setView(igview);
 
-                sf::RectangleShape bauchbindeShape;
-                bauchbindeShape.setSize(sf::Vector2f(1024, 200));
-                bauchbindeShape.setPosition(sf::Vector2f(0, 920));
-                bauchbindeShape.setFillColor(sf::Color(50, 50, 50, 100));
+                    sf::RectangleShape bauchbindeShape;
+                    bauchbindeShape.setSize(sf::Vector2f(1024, 200));
+                    bauchbindeShape.setPosition(sf::Vector2f(0, 920));
+                    bauchbindeShape.setFillColor(sf::Color(50, 50, 50, 100));
 
-                sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
-                bauchbindeText.setCharacterSize(60);
+                    sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
+                    bauchbindeText.setCharacterSize(60);
 
-                bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2); 
-                bauchbindeText.setPosition(512, 960);
-                
-                window.draw(bauchbindeShape);
-                window.draw(bauchbindeText);
+                    bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2);
+                    bauchbindeText.setPosition(512, 960);
 
-                window.setView(oldView);
+                    window.draw(bauchbindeShape);
+                    window.draw(bauchbindeText);
+
+                    window.setView(oldView);
+                }
             }
 
             // Change the current map if it has changed in the game

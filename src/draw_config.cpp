@@ -29,6 +29,7 @@ std::vector<draw_config> draw_config_parse_json(nlohmann::json input) {
         extracted.circleSize = config.value()["circleSize"].get<float>();
         extracted.observerTextSize = config.value()["observerTextSize"].get<int>();
         extracted.bombIconScale = config.value()["bombIconScale"].get<float>();
+        extracted.drawBauchbinde = config.value()["bauchbinde"].get<bool>();
 
         returnVector.push_back(extracted);
     }
@@ -49,6 +50,7 @@ nlohmann::json draw_config_to_json(std::vector<draw_config> configs) {
         configJson["circleSize"] = config.circleSize;
         configJson["observerTextSize"] = config.observerTextSize;
         configJson["bombIconScale"] = config.bombIconScale;
+        configJson["bauchbinde"] = config.drawBauchbinde;
 
         returnJson[config.name] = configJson;
     }
