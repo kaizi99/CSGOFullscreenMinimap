@@ -52,6 +52,11 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
     window.setFramerateLimit(200);
     
+    // Setup the background sprite
+    sf::Texture bg;
+    bg.loadFromFile("background.png");
+    sf::Sprite bgSprite(bg);
+
     // Setup the cross sprite
     sf::Texture cross;
     cross.loadFromFile("cross.png");
@@ -78,6 +83,9 @@ int main()
     observerSlotFont.loadFromFile("Roboto-Regular.ttf");
     sf::Font playerNameFont;
     playerNameFont.loadFromFile("Roboto-Regular.ttf");
+
+    sf::Font bauchbindeFont;
+    bauchbindeFont.loadFromFile("segoeui.ttf");
 
     // Setup the observer slot texts
     sf::Text observerSlotTexts[10];
@@ -165,7 +173,8 @@ int main()
             imgui_sfml_begin_frame(window, 0.1f);
 
             // Clear screen
-            window.clear(sf::Color(0, 0, 0, 0));
+            window.clear(sf::Color(0, 0, 0, 150));
+            //window.draw(bgSprite);
 
             auto gs = gamestate->get_latest_gamestate();
 
@@ -334,6 +343,27 @@ int main()
                     window.draw(bombSprite);
                 }
 
+                // Bauchbinde
+                sf::View oldView = window.getView();
+
+                sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
+                window.setView(igview);
+
+                sf::RectangleShape bauchbindeShape;
+                bauchbindeShape.setSize(sf::Vector2f(1024, 200));
+                bauchbindeShape.setPosition(sf::Vector2f(0, 920));
+                bauchbindeShape.setFillColor(sf::Color(50, 50, 50, 100));
+
+                sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
+                bauchbindeText.setCharacterSize(60);
+
+                bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2); 
+                bauchbindeText.setPosition(512, 960);
+                
+                window.draw(bauchbindeShape);
+                window.draw(bauchbindeText);
+
+                window.setView(oldView);
             }
 
             // Change the current map if it has changed in the game
