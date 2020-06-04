@@ -55,7 +55,11 @@
       },
       "scale": 7,
       "lowerLayerName": "de_nuke_lower_radar.png",
-      "cutoff": 495.0
+      "cutoff": 495.0,
+      "lowerOffset": {
+        "x": 330,
+        "y": 300
+      }
     },
     "de_vertigo": {
       "name": "de_vertigo",
@@ -66,7 +70,11 @@
       },
       "scale": 4,
       "lowerLayerName": "de_vertigo_lower_radar.png",
-      "cutoff": -11700.0
+      "cutoff": -11700.0,
+      "lowerOffset": {
+        "x": 1024,
+        "y": 0
+      }
     }
   },
   "configs": {
@@ -77,16 +85,18 @@
       "nameDeadCharacterSize": 12,
       "circleSize": 10.0,
       "observerTextSize": 15,
-      "bombIconScale": 1
+      "bombIconScale": 1,
+      "bauchbinde":  false
     },
     "Minimap": {
-      "drawTwoMaps": false,
+      "drawTwoMaps": true,
       "drawName": false,
       "nameCharacterSize": 0,
       "nameDeadCharacterSize": 0,
       "circleSize": 20.0,
       "observerTextSize": 23,
-      "bombIconScale": 1.5
+      "bombIconScale": 1.5,
+      "bauchbinde": true
     }
   }
 }

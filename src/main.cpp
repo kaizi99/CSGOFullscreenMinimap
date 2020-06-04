@@ -246,8 +246,8 @@ int main()
                         triangle.setRotation(p.rotation);
 
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                            playerCircle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
-                            triangle.setPosition(sf::Vector2f(p.minimapPosition.x + 1024, p.minimapPosition.y));
+                            playerCircle.setPosition(p.minimapPosition + loadedMap->map.lowerLayerOffset);
+                            triangle.setPosition(p.minimapPosition + loadedMap->map.lowerLayerOffset);
                         }
                         else {
                             playerCircle.setPosition(p.minimapPosition);
@@ -285,7 +285,7 @@ int main()
                             obsText.setPosition(p.minimapPosition.x, p.minimapPosition.y - (activeConfig.circleSize / 4));
 
                             if (p.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                                obsText.move(1024, 0);
+                                obsText.move(loadedMap->map.lowerLayerOffset);
                             }
 
                             window.draw(obsText);
@@ -296,7 +296,7 @@ int main()
                         crossSprite.setPosition(p.minimapPosition);
 
                         if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
-                            crossSprite.move(1024, 0);
+                            crossSprite.move(loadedMap->map.lowerLayerOffset);
 
                         window.draw(crossSprite);
                     }
@@ -304,7 +304,7 @@ int main()
                     // Draw the player name
                     p.playerNameText.setPosition(p.minimapPosition);
                     if (p.isOnLowerLevel && activeConfig.drawTwoMaps)
-                        p.playerNameText.move(1024, 0);
+                        p.playerNameText.move(loadedMap->map.lowerLayerOffset);
 
                     p.playerNameText.move(-8, -2);
                     p.playerNameText.setCharacterSize(p.dead ? activeConfig.nameDeadCharacterSize : activeConfig.nameCharacterSize);
@@ -327,7 +327,7 @@ int main()
                     }
 
                     if (b.isOnLowerLevel && activeConfig.drawTwoMaps) {
-                        bombSprite.setPosition(bPos.x + 1024, bPos.y);
+                        bombSprite.setPosition(bPos + loadedMap->map.lowerLayerOffset);
                     }
                     else {
                         bombSprite.setPosition(bPos);

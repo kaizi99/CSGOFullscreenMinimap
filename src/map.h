@@ -27,6 +27,7 @@ struct mapinfo {
     bool hasTwoLayers;
     std::string lowerLayerName;
     float cutoff;
+    sf::Vector2f lowerLayerOffset;
 };
 
 std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input);
