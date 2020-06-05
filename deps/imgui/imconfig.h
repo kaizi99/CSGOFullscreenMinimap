@@ -24,7 +24,7 @@
 //#define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
-//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Disable all of Dear ImGui or don't implement standard windows.
 // It is very strongly recommended to NOT disable the demo windows during development. Please read comments in imgui_demo.cpp.
@@ -47,6 +47,9 @@
 
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to another)
 //#define IMGUI_USE_BGRA_PACKED_COLOR
+
+//---- Use 32-bit for ImWchar (default is 16-bit) to support full unicode code points.
+//#define IMGUI_USE_WCHAR32
 
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames to prioritize another version
 // By default the embedded implementations are declared static and not available outside of imgui cpp files.

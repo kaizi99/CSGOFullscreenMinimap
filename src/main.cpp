@@ -29,6 +29,8 @@
 #include "draw_config.h"
 #include "bomb.h"
 
+#include <imgui_stdlib.h>
+
 #ifdef _MSC_VER
 #include <direct.h>
 #endif
@@ -58,7 +60,7 @@ int main()
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
-    window.setFramerateLimit(200);
+    window.setFramerateLimit(60);
     
     // Setup the background sprite
     sf::Texture bg;
@@ -126,6 +128,15 @@ int main()
     bool drawImGUI = true;
     bool enableInterpolation = true;
 
+    std::string pickedByLogo = "depa.png";
+    bool drawPickedBy = false;
+    sf::Texture pickedByLogoTexture;
+
+    sf::Clock deltaTimeClock;
+    deltaTimeClock.restart();
+
+    float deltaTime = 0.16;
+
     // Start the game loop
     while (window.isOpen())
     {
@@ -162,6 +173,8 @@ int main()
                     v.setSize(size);
                     window.setView(v);
                 }
+
+                imgui_sfml_process_event(event);
             }
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && window.hasFocus()) {
@@ -174,11 +187,9 @@ int main()
                 window.setView(v);
             }
 
-            imgui_sfml_process_event(event);
-
             oldMousePosition = sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 
-            imgui_sfml_begin_frame(window, 0.1f);
+            imgui_sfml_begin_frame(window, deltaTime);
 
             // Clear screen
             window.clear(sf::Color(0, 0, 0, 150));
@@ -358,19 +369,42 @@ int main()
                     sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
                     window.setView(igview);
 
+                    
+
                     sf::RectangleShape bauchbindeShape;
                     bauchbindeShape.setSize(sf::Vector2f(1024, 200));
                     bauchbindeShape.setPosition(sf::Vector2f(0, 920));
                     bauchbindeShape.setFillColor(sf::Color(50, 50, 50, 100));
-
-                    sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
-                    bauchbindeText.setCharacterSize(60);
-
-                    bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2);
-                    bauchbindeText.setPosition(512, 960);
-
                     window.draw(bauchbindeShape);
-                    window.draw(bauchbindeText);
+
+                    if (drawPickedBy) {
+                        sf::Text bauchbindeText(loadedMap->map.name + " picked by ", bauchbindeFont);
+                        bauchbindeText.setCharacterSize(60);
+                        float textHeight = bauchbindeText.getLocalBounds().height;
+                        float textWidth = bauchbindeText.getLocalBounds().width;
+
+                        float bauchbindeContentWidth = bauchbindeText.getLocalBounds().width + 10 + textHeight;
+                        bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2);
+                        bauchbindeText.setPosition(512 - 10 - textHeight, 960);
+
+                        // The *1.5 is a really bad hack to fix something I currenlty dont have the time to fix
+                        sf::Sprite pickedByLogoSprite(pickedByLogoTexture);
+                        pickedByLogoSprite.setScale((textHeight / pickedByLogoTexture.getSize().x) * 1.5, (textHeight / pickedByLogoTexture.getSize().y) * 1.5);
+                        pickedByLogoSprite.setOrigin(0, pickedByLogoTexture.getSize().y / 2);
+                        pickedByLogoSprite.setPosition(512 - textHeight + (textWidth / 2), 975);
+
+                        window.draw(bauchbindeText);
+                        window.draw(pickedByLogoSprite);
+                        
+                    } else {
+                        sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
+                        bauchbindeText.setCharacterSize(60);
+
+                        bauchbindeText.setOrigin(bauchbindeText.getLocalBounds().width / 2, bauchbindeText.getLocalBounds().height / 2);
+                        bauchbindeText.setPosition(512, 960);
+
+                        window.draw(bauchbindeText);
+                    }
 
                     window.setView(oldView);
                 }
@@ -432,6 +466,14 @@ int main()
                     sf::Clipboard::setString(clipboardString);
             	}
 
+                ImGui::InputText("Logo Path", &pickedByLogo);
+                if (ImGui::Button("Load Logo")) {
+                    pickedByLogoTexture.loadFromFile(pickedByLogo);
+                    pickedByLogoTexture.generateMipmap();
+                }
+
+                ImGui::Checkbox("Draw picked by", &drawPickedBy);
+
                 ImGui::End();
             }
 
@@ -443,6 +485,9 @@ int main()
             std::cerr << "A JSON exception occured. If this doesn't happen more than a couple times an hour you can ignore this." << std::endl;
             std::cerr << "JSON exceptions happen when CSGO sends information with certain critical information either missing or malformed." << std::endl;
         }
+
+        deltaTime = deltaTimeClock.getElapsedTime().asMilliseconds() / 1000.0f;
+        deltaTimeClock.restart();
     }
 
     imgui_sfml_destroy();

@@ -4,7 +4,6 @@
 // Implemented features:
 //  [X] Renderer: Support for large meshes (64k+ vertices) with 16-bit indices.
 // Missing features:
-//  [ ] Platform: Multi-viewport / platform windows.
 //  [ ] Renderer: User texture binding. Changes of ImTextureID aren't supported by this binding! See https://github.com/ocornut/imgui/pull/914
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
@@ -22,7 +21,7 @@
 // Read comments in imgui_impl_vulkan.h.
 
 #pragma once
-
+#include "imgui.h"      // IMGUI_IMPL_API
 #include <vulkan/vulkan.h>
 
 // Initialization data, for ImGui_ImplVulkan_Init()
@@ -60,7 +59,7 @@ IMGUI_IMPL_API void     ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_cou
 // You probably do NOT need to use or care about those functions.
 // Those functions only exist because:
 //   1) they facilitate the readability and maintenance of the multiple main.cpp examples files.
-//   2) the multi-viewport / platform window implementation needs them internally.
+//   2) the upcoming multi-viewport feature will need them internally.
 // Generally we avoid exposing any kind of superfluous high-level helpers in the bindings,
 // but it is too much code to duplicate everywhere so we exceptionally expose them.
 //
@@ -73,7 +72,7 @@ struct ImGui_ImplVulkanH_Frame;
 struct ImGui_ImplVulkanH_Window;
 
 // Helpers
-IMGUI_IMPL_API void                 ImGui_ImplVulkanH_CreateWindow(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, ImGui_ImplVulkanH_Window* wnd, uint32_t queue_family, const VkAllocationCallbacks* allocator, int w, int h, uint32_t min_image_count);
+IMGUI_IMPL_API void                 ImGui_ImplVulkanH_CreateOrResizeWindow(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, ImGui_ImplVulkanH_Window* wnd, uint32_t queue_family, const VkAllocationCallbacks* allocator, int w, int h, uint32_t min_image_count);
 IMGUI_IMPL_API void                 ImGui_ImplVulkanH_DestroyWindow(VkInstance instance, VkDevice device, ImGui_ImplVulkanH_Window* wnd, const VkAllocationCallbacks* allocator);
 IMGUI_IMPL_API VkSurfaceFormatKHR   ImGui_ImplVulkanH_SelectSurfaceFormat(VkPhysicalDevice physical_device, VkSurfaceKHR surface, const VkFormat* request_formats, int request_formats_count, VkColorSpaceKHR request_color_space);
 IMGUI_IMPL_API VkPresentModeKHR     ImGui_ImplVulkanH_SelectPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface, const VkPresentModeKHR* request_modes, int request_modes_count);
