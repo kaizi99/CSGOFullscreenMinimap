@@ -28,6 +28,7 @@
 #include "interpolation.h"
 #include "draw_config.h"
 #include "bomb.h"
+#include "grenades.h"
 
 #include <imgui_stdlib.h>
 
@@ -62,11 +63,6 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
     window.setFramerateLimit(60);
     
-    // Setup the background sprite
-    sf::Texture bg;
-    bg.loadFromFile("background.png");
-    sf::Sprite bgSprite(bg);
-
     // Setup the cross sprite
     sf::Texture cross;
     cross.loadFromFile("cross.png");
@@ -136,6 +132,7 @@ int main()
     deltaTimeClock.restart();
 
     float deltaTime = 0.16;
+    bool debugGrenades = true;
 
     // Start the game loop
     while (window.isOpen())
@@ -193,7 +190,6 @@ int main()
 
             // Clear screen
             window.clear(sf::Color(0, 0, 0, 150));
-            //window.draw(bgSprite);
 
             auto gs = gamestate->get_latest_gamestate();
 
@@ -203,6 +199,8 @@ int main()
             if (loadedMap != nullptr) {
 
                 bomb b(gs["bomb"], loadedMap);
+
+                processGrenades(gs, &debugGrenades);
 
                 if (enableInterpolation) {
                     // Get all players interpolated
