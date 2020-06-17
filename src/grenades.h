@@ -18,10 +18,10 @@
 #include <json.hpp>
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <unordered_map>
+#include <memory>
 
 #include "map.h"
-
-#include <memory>
 
 enum class grenadeType {
 	inferno,
@@ -32,6 +32,8 @@ enum class grenadeType {
 };
 
 struct grenade {
+    grenade(float Lifetime, float EffectTime, sf::Vector3f Position, bool FromCT);
+
 	float lifetime;
 	float effecttime;
 	sf::Vector3f position;
@@ -42,28 +44,38 @@ struct grenade {
 };
 
 struct infernoGrenade : grenade {
+    infernoGrenade(const nlohmann::json& info);
+
 	grenadeType type() override { return grenadeType::inferno; }
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
 };
 
 struct fragGrenade : grenade {
-	grenadeType type() override { return grenadeType::inferno; }
+    fragGrenade(const nlohmann::json& info);
+
+	grenadeType type() override { return grenadeType::frag; }
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
 };
 
 struct smokeGrenade : grenade {
-	grenadeType type() override { return grenadeType::inferno; }
+    smokeGrenade(const nlohmann::json& info);
+
+	grenadeType type() override { return grenadeType::smoke; }
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
 };
 
 struct flashbangGrenade : grenade {
-	grenadeType type() override { return grenadeType::inferno; }
+    flashbangGrenade(const nlohmann::json& info);
+
+	grenadeType type() override { return grenadeType::flashbang; }
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
 };
 
 struct decoyGrenade : grenade {
-	grenadeType type() override { return grenadeType::inferno; }
+    decoyGrenade(const nlohmann::json& info);
+
+	grenadeType type() override { return grenadeType::decoy; }
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
 };
 
-std::vector<std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug);
+std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug);
