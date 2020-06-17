@@ -33,6 +33,7 @@ std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
             info.cutoff = map.value()["cutoff"].get<float>();
         } else {
             info.hasTwoLayers = false;
+            info.cutoff = 0.0f;
         }
 
         returnVector.push_back(info);

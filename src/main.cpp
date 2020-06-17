@@ -28,6 +28,7 @@
 #include "interpolation.h"
 #include "draw_config.h"
 #include "bomb.h"
+#include "config_editor.h"
 
 int main()
 {
@@ -43,6 +44,8 @@ int main()
 
     std::vector<mapinfo> mapinfos = mapinfo_parse_json(configJson["maps"]);
     std::vector<draw_config> drawConfigs = draw_config_parse_json(configJson["configs"]);
+
+    config_editor confed(&mapinfos, &drawConfigs);
 
     int gamestatePort = configJson["gamestatePort"].get<int>();
 
@@ -376,6 +379,10 @@ int main()
                     }
                 }
 
+                if (ImGui::Button("Open Config Editor")) {
+                    confed.showWindow();
+                }
+
                 if (ImGui::Button("Copy gamestate clipboard")) {
                     sf::Clipboard::setString(gamestate->get_latest_gamestate().dump());
                 }
@@ -394,6 +401,8 @@ int main()
 
                 ImGui::End();
             }
+
+            confed.drawSettingsWindow();
 
             imgui_sfml_end_frame(window);
 
