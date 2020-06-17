@@ -14,7 +14,8 @@
 ## Setup
 1. Import your overviews. The overviews have to be in a format SFML understands, so `.dds` is not supported. I can recommend Paint.Net to convert the `.dds` overviews from CSGO or SimpleRadar to `.png`.
 2. Setup your overviews in the config. If you just plan to use the map on the 7 active duty maps you are already good to go since they are already configured in the `config.json`.
-3. Import the Gamestate Integration Config into your personal CSGO cfg folder at `/userdata/x/730/local/cfg` relative to your main Steam installation directory.
+3. Import your grenade sprites into the grenades folder. They are called `weapon_decoy.png`, `weapon_flashbang.png`, `weapon_hegrenade.png`, `weapon_incgrenade.png`, `weapon_molotov.png` and `weapon_smokegrenade.png`
+4. Import the Gamestate Integration Config into your personal CSGO cfg folder at `/userdata/x/730/local/cfg` relative to your main Steam installation directory.
 
 After that you should be good to go. As long as you have a demo running the minimap should get data from CSGO.
 

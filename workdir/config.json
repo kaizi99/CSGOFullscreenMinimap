@@ -95,7 +95,7 @@
       "nameDeadCharacterSize": 0,
       "circleSize": 20.0,
       "observerTextSize": 23,
-      "bombIconScale": 1.5,
+      "bombIconScale": 2,
       "bauchbinde": true
     }
   }

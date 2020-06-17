@@ -20,8 +20,20 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <string>
 
 #include "map.h"
+#include "draw_config.h"
+#include "player.h"
+
+struct grenadeResources {
+	sf::Texture decoy;
+	sf::Texture flashbang;
+	sf::Texture hegrenade;
+	sf::Texture incgrenade;
+	sf::Texture molotov;
+	sf::Texture smokegrenade;
+};
 
 enum class grenadeType {
 	inferno,
@@ -32,50 +44,63 @@ enum class grenadeType {
 };
 
 struct grenade {
-    grenade(float Lifetime, float EffectTime, sf::Vector3f Position, bool FromCT);
+    grenade(const nlohmann::json& info, sf::Sprite sprite, bool fromCT);
 
 	float lifetime;
-	float effecttime;
+
+	bool hasPosition;
 	sf::Vector3f position;
+
+	bool hasEffectTime;
+	float effectTime;
+
 	bool fromCT;
 
+	sf::Sprite sprite;
+
+	sf::Vector2f translateToMapSpace(sf::Vector3f pos, const mapinfo& mapinfo, const draw_config& drawConfig);
+
 	virtual grenadeType type() = 0;
-	virtual void render(sf::RenderWindow& window, const mapinfo& mapinfo) = 0;
+	virtual void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) = 0;
 };
 
 struct infernoGrenade : grenade {
-    infernoGrenade(const nlohmann::json& info);
+	std::vector<sf::Vector3f> flames;
+	bool isFirebomb;
+	sf::Sprite firebombSprite;
+
+    infernoGrenade(const nlohmann::json& info, sf::Sprite sprite, sf::Sprite firebombSprite, bool fromCT);
 
 	grenadeType type() override { return grenadeType::inferno; }
-	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
+	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
 struct fragGrenade : grenade {
-    fragGrenade(const nlohmann::json& info);
+    fragGrenade(const nlohmann::json& info, sf::Sprite sprite, bool fromCT);
 
 	grenadeType type() override { return grenadeType::frag; }
-	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
+	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
 struct smokeGrenade : grenade {
-    smokeGrenade(const nlohmann::json& info);
+    smokeGrenade(const nlohmann::json& info, sf::Sprite sprite, bool fromCT);
 
 	grenadeType type() override { return grenadeType::smoke; }
-	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
+	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
 struct flashbangGrenade : grenade {
-    flashbangGrenade(const nlohmann::json& info);
+    flashbangGrenade(const nlohmann::json& info, sf::Sprite sprite, bool fromCT);
 
 	grenadeType type() override { return grenadeType::flashbang; }
-	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
+	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
 struct decoyGrenade : grenade {
-    decoyGrenade(const nlohmann::json& info);
+    decoyGrenade(const nlohmann::json& info, sf::Sprite sprite, bool fromCT);
 
 	grenadeType type() override { return grenadeType::decoy; }
-	void render(sf::RenderWindow& window, const mapinfo& mapinfo) override;
+	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
-std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug);
+std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug, std::shared_ptr<grenadeResources> resources, const std::vector<player>& players);

@@ -93,6 +93,15 @@ int main()
     sf::Font bauchbindeFont;
     bauchbindeFont.loadFromFile("segoeui.ttf");
 
+    // Load the grenade textures
+    std::shared_ptr<grenadeResources> grenadeTextures = std::make_shared<grenadeResources>();
+    grenadeTextures->decoy.loadFromFile("grenades/weapon_decoy.png");
+    grenadeTextures->flashbang.loadFromFile("grenades/weapon_flashbang.png");
+    grenadeTextures->hegrenade.loadFromFile("grenades/weapon_hegrenade.png"); 
+    grenadeTextures->incgrenade.loadFromFile("grenades/weapon_incgrenade.png");
+    grenadeTextures->molotov.loadFromFile("grenades/weapon_molotov.png");
+    grenadeTextures->smokegrenade.loadFromFile("grenades/weapon_smokegrenade.png");
+
     // Setup the observer slot texts
     sf::Text observerSlotTexts[10];
     for (int i = 0; i < 10; i++) {
@@ -200,8 +209,6 @@ int main()
 
                 bomb b(gs["bomb"], loadedMap);
 
-                processGrenades(gs, &debugGrenades);
-
                 if (enableInterpolation) {
                     // Get all players interpolated
                     players = interp.processInterpolation();
@@ -212,6 +219,7 @@ int main()
                     }
                 }
 
+                auto grenades = processGrenades(gs, &debugGrenades, grenadeTextures, players);
 
                 // Sort all dead players under the alive players to draw the alive player always above dead players
                 std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
@@ -246,6 +254,11 @@ int main()
                 }
                 else {
                     window.draw(loadedMap->mapSprite);
+                }
+
+                // Draw the grenades
+                for (const auto& g : grenades) {
+                    g.second->render(window, loadedMap->map, activeConfig);
                 }
 
                 // Draw each player
@@ -482,6 +495,8 @@ int main()
         {
             std::cerr << "A JSON exception occured. If this doesn't happen more than a couple times an hour you can ignore this." << std::endl;
             std::cerr << "JSON exceptions happen when CSGO sends information with certain critical information either missing or malformed." << std::endl;
+
+            std::cerr << e.what() << std::endl;
         }
 
         deltaTime = deltaTimeClock.getElapsedTime().asMilliseconds() / 1000.0f;
