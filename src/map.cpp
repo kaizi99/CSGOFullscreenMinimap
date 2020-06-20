@@ -93,6 +93,21 @@ nlohmann::json mapinfo_to_json(std::vector<mapinfo> input) {
             mapJson["lowerOffset"]["y"] = info.lowerLayerOffset.y;
         }
 
+        mapJson["standardView"]["centerX"] = info.standardView.centerX;
+        mapJson["standardView"]["centerY"] = info.standardView.centerY;
+        mapJson["standardView"]["width"] = info.standardView.width;
+        mapJson["standardView"]["height"] = info.standardView.height;
+
+        mapJson["aSiteView"]["centerX"] = info.aSiteView.centerX;
+        mapJson["aSiteView"]["centerY"] = info.aSiteView.centerY;
+        mapJson["aSiteView"]["width"] = info.aSiteView.width;
+        mapJson["aSiteView"]["height"] = info.aSiteView.height;
+
+        mapJson["bSiteView"]["centerX"] = info.bSiteView.centerX;
+        mapJson["bSiteView"]["centerY"] = info.bSiteView.centerY;
+        mapJson["bSiteView"]["width"] = info.bSiteView.width;
+        mapJson["bSiteView"]["height"] = info.bSiteView.height;
+
         returnJson[info.name] = mapJson;
     }
 

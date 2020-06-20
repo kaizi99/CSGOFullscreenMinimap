@@ -1,228 +1,228 @@
 {
-  "gamestatePort": 1338,
-  "maps": {
-    "de_overpass": {
-      "name": "de_overpass",
-      "radarName": "de_overpass_radar.png",
-      "upperLeft": {
-        "x": -4831.0,
-        "y": 1781.0
-      },
-      "scale": 5.2,
-      "standardView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "aSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "bSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      }
+    "configs": {
+        "Minimap": {
+            "bauchbinde": true,
+            "bombIconScale": 2.0,
+            "circleSize": 20.0,
+            "drawName": false,
+            "drawTwoMaps": true,
+            "nameCharacterSize": 0,
+            "nameDeadCharacterSize": 0,
+            "observerTextSize": 23
+        },
+        "Observer": {
+            "bauchbinde": false,
+            "bombIconScale": 1.0,
+            "circleSize": 10.0,
+            "drawName": true,
+            "drawTwoMaps": true,
+            "nameCharacterSize": 15,
+            "nameDeadCharacterSize": 12,
+            "observerTextSize": 15
+        }
     },
-    "de_dust2": {
-      "name": "de_dust2",
-      "radarName": "de_dust2_radar.png",
-      "upperLeft": {
-        "x": -2476.0,
-        "y": 3239.0
-      },
-      "scale": 4.4,
-      "standardView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "aSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "bSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      }
-    },
-    "de_inferno": {
-      "name": "de_inferno",
-      "radarName": "de_inferno_radar.png",
-      "upperLeft": {
-        "x": -2087.0,
-        "y": 3870.0
-      },
-      "scale": 4.9,
-      "standardView": {
-        "centerX": 520.0,
-        "centerY": 559.0,
-        "height": 1024.0,
-        "width": 1024.0
-      },
-      "aSiteView": {
-        "centerX": 713.0,
-        "centerY": 705.0,
-        "height": 592.6290283203125,
-        "width": 592.6290283203125
-      },
-      "bSiteView": {
-        "centerX": 652.0,
-        "centerY": 328.0,
-        "height": 665.1279296875,
-        "width": 665.1279296875
-      }
-    },
-    "de_mirage": {
-      "name": "de_mirage",
-      "radarName": "de_mirage_radar.png",
-      "upperLeft": {
-        "x": -3230.0,
-        "y": 1713.0
-      },
-      "scale": 5,
-      "standardView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "aSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "bSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      }
-    },
-    "de_train": {
-      "name": "de_train",
-      "radarName": "de_train_radar.png",
-      "upperLeft": {
-        "x": -2477.0,
-        "y": 2392.0
-      },
-      "scale": 4.7,
-      "standardView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "aSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "bSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      }
-    },
-    "de_nuke": {
-      "name": "de_nuke",
-      "radarName": "de_nuke_radar.png",
-      "upperLeft": {
-        "x": -3453.0,
-        "y": 2887.0
-      },
-      "scale": 7,
-      "lowerLayerName": "de_nuke_lower_radar.png",
-      "cutoff": 495.0,
-      "lowerOffset": {
-        "x": 330,
-        "y": 300
-      },
-      "standardView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "aSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      },
-      "bSiteView": {
-        "centerX": 512,
-        "centerY": 512,
-        "width": 1024,
-        "height": 1024
-      }
-    },
-    "de_vertigo": {
-      "name": "de_vertigo",
-      "radarName": "de_vertigo_radar.png",
-      "upperLeft": {
-        "x": -3168.0,
-        "y": 1762.0
-      },
-      "scale": 4,
-      "lowerLayerName": "de_vertigo_lower_radar.png",
-      "cutoff": -11700.0,
-      "lowerOffset": {
-        "x": 1024,
-        "y": 0
-      },
-      "standardView": {
-        "centerX": 456.0,
-        "centerY": 547.0,
-        "height": 821.1456298828125,
-        "width": 821.1456298828125
-      },
-      "aSiteView": {
-        "centerX": 579.0,
-        "centerY": 674.0,
-        "height": 533.3660888671875,
-        "width": 533.3660888671875
-      },
-      "bSiteView": {
-        "centerX": 340.0,
-        "centerY": 379.0,
-        "height": 533.3660888671875,
-        "width": 533.3660888671875
-      }
+    "gamestatePort": 1338,
+    "maps": {
+        "de_dust2": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "name": "de_dust2",
+            "radarName": "de_dust2_radar.png",
+            "scale": 4.400000095367432,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -2476.0,
+                "y": 3239.0
+            }
+        },
+        "de_inferno": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "name": "de_inferno",
+            "radarName": "de_inferno_radar.png",
+            "scale": 4.900000095367432,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -2087.0,
+                "y": 3870.0
+            }
+        },
+        "de_mirage": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "name": "de_mirage",
+            "radarName": "de_mirage_radar.png",
+            "scale": 5.0,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -3230.0,
+                "y": 1713.0
+            }
+        },
+        "de_nuke": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "cutoff": 495.0,
+            "lowerLayerName": "de_nuke_lower_radar.png",
+            "lowerOffset": {
+                "x": 330.0,
+                "y": 300.0
+            },
+            "name": "de_nuke",
+            "radarName": "de_nuke_radar.png",
+            "scale": 7.0,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -3453.0,
+                "y": 2887.0
+            }
+        },
+        "de_overpass": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "name": "de_overpass",
+            "radarName": "de_overpass_radar.png",
+            "scale": 5.199999809265137,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -4831.0,
+                "y": 1781.0
+            }
+        },
+        "de_train": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "name": "de_train",
+            "radarName": "de_train_radar.png",
+            "scale": 4.699999809265137,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -2477.0,
+                "y": 2392.0
+            }
+        },
+        "de_vertigo": {
+            "aSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "bSiteView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "cutoff": -11700.0,
+            "lowerLayerName": "de_vertigo_lower_radar.png",
+            "lowerOffset": {
+                "x": 1024.0,
+                "y": 0.0
+            },
+            "name": "de_vertigo",
+            "radarName": "de_vertigo_radar.png",
+            "scale": 4.0,
+            "standardView": {
+                "centerX": 512.0,
+                "centerY": 512.0,
+                "height": 1024.0,
+                "width": 1024.0
+            },
+            "upperLeft": {
+                "x": -3168.0,
+                "y": 1762.0
+            }
+        }
     }
-  },
-  "configs": {
-    "Observer": {
-      "drawTwoMaps": true,
-      "drawName": true,
-      "nameCharacterSize": 15,
-      "nameDeadCharacterSize": 12,
-      "circleSize": 10.0,
-      "observerTextSize": 15,
-      "bombIconScale": 1,
-      "bauchbinde":  false
-    },
-    "Minimap": {
-      "drawTwoMaps": true,
-      "drawName": false,
-      "nameCharacterSize": 0,
-      "nameDeadCharacterSize": 0,
-      "circleSize": 20.0,
-      "observerTextSize": 23,
-      "bombIconScale": 2,
-      "bauchbinde": true
-    }
-  }
 }

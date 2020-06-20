@@ -29,6 +29,7 @@
 #include "draw_config.h"
 #include "bomb.h"
 #include "grenades.h"
+#include "config_editor.h"
 
 #include <imgui_stdlib.h>
 
@@ -55,9 +56,9 @@ int main()
     std::vector<mapinfo> mapinfos = mapinfo_parse_json(configJson["maps"]);
     std::vector<draw_config> drawConfigs = draw_config_parse_json(configJson["configs"]);
 
-    config_editor confed(&mapinfos, &drawConfigs);
-
     int gamestatePort = configJson["gamestatePort"].get<int>();
+
+    config_editor confed(&mapinfos, &drawConfigs, gamestatePort);
 
     draw_config activeConfig = drawConfigs[0];
 
@@ -526,7 +527,7 @@ int main()
                 ImGui::End();
             }
 
-            confed.drawSettingsWindow();
+            confed.drawSettingsWindow(window);
 
             imgui_sfml_end_frame(window);
 

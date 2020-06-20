@@ -5,24 +5,78 @@
 #include "config_editor.h"
 
 #include <imgui.h>
+#include <fstream>
 
-void config_editor::drawSettingsWindow() {
+void config_editor::drawSettingsWindow(const sf::RenderWindow& window) {
     if (m_drawWindow) {
         ImGui::Begin("Config Editor", &m_drawWindow);
 
         if (ImGui::TreeNode("Maps")) {
-            ImGui::Columns(2);
             for (mapinfo& f : *m_mapConfigs) {
                 ImGui::PushID(("map_ed_" + f.name).c_str());
-                ImGui::Text("%s", f.name.c_str());
-                ImGui::NextColumn();
-                if (ImGui::Button("Edit")) {
-                    m_editMap = &f;
+
+                if (ImGui::TreeNode(f.name.c_str())) {
+                    char* buffer = (char*)malloc(100);
+                    memset(buffer, 0, 100);
+
+                    strncpy(buffer, f.name.c_str(), 99);
+                    ImGui::InputText("Name", buffer, 100);
+                    f.name = buffer;
+
+                    strncpy(buffer, f.radarName.c_str(), 99);
+                    ImGui::InputText("Radar File", buffer, 100);
+                    f.radarName = buffer;
+
+                    ImGui::InputFloat3("Upper Left", &f.upperLeft.x);
+                    ImGui::InputFloat("Scale", &f.scale, 1);
+                    ImGui::Checkbox("Two Layers", &f.hasTwoLayers);
+                    if (f.hasTwoLayers) {
+                        strncpy(buffer, f.lowerLayerName.c_str(), 99);
+                        ImGui::InputText("Lower Layer File", buffer, 100);
+                        f.lowerLayerName = buffer;
+
+                        ImGui::InputFloat("Cutoff", &f.cutoff);
+
+                        ImGui::InputFloat2("Map Offset", &f.lowerLayerOffset.x);
+                    }
+
+                    if (ImGui::Button("Set as default view")) {
+                        sf::Vector2f center = window.getView().getCenter();
+                        sf::Vector2f size = window.getView().getSize();
+
+                        f.standardView.centerX = center.x;
+                        f.standardView.centerY = center.y;
+                        f.standardView.width = size.x;
+                        f.standardView.height = size.y;
+                    }
+
+                    if (ImGui::Button("Set as A Site view")) {
+                        sf::Vector2f center = window.getView().getCenter();
+                        sf::Vector2f size = window.getView().getSize();
+
+                        f.aSiteView.centerX = center.x;
+                        f.aSiteView.centerY = center.y;
+                        f.aSiteView.width = size.x;
+                        f.aSiteView.height = size.y;
+                    }
+
+                    if (ImGui::Button("Set as B Site view")) {
+                        sf::Vector2f center = window.getView().getCenter();
+                        sf::Vector2f size = window.getView().getSize();
+
+                        f.bSiteView.centerX = center.x;
+                        f.bSiteView.centerY = center.y;
+                        f.bSiteView.width = size.x;
+                        f.bSiteView.height = size.y;
+                    }
+
+                    free(buffer);
+
+                    ImGui::TreePop();
                 }
-                ImGui::NextColumn();
+
                 ImGui::PopID();
             }
-            ImGui::Columns(1);
             ImGui::TreePop();
         }
 
@@ -42,35 +96,6 @@ void config_editor::drawSettingsWindow() {
             ImGui::Columns(1);
         }
 
-        if (m_editMap && ImGui::TreeNode("Edit Map")) {
-
-            char* buffer = (char*)malloc(100);
-            memset(buffer, 0, 100);
-
-            strncpy(buffer, m_editMap->name.c_str(), 99);
-            ImGui::InputText("Name", buffer, 100);
-            m_editMap->name = buffer;
-
-            strncpy(buffer, m_editMap->radarName.c_str(), 99);
-            ImGui::InputText("Radar File", buffer, 100);
-            m_editMap->radarName = buffer;
-
-            ImGui::InputFloat3("Upper Left", &m_editMap->upperLeft.x, 1);
-            ImGui::InputFloat("Scale", &m_editMap->scale, 1);
-            ImGui::Checkbox("Two Layers", &m_editMap->hasTwoLayers);
-            if (m_editMap->hasTwoLayers) {
-                strncpy(buffer, m_editMap->lowerLayerName.c_str(), 99);
-                ImGui::InputText("Lower Layer File", buffer, 100);
-                m_editMap->lowerLayerName = buffer;
-
-                ImGui::InputFloat("Cutoff", &m_editMap->cutoff);
-            }
-
-            free(buffer);
-
-            ImGui::TreePop();
-        }
-
         if (m_editConfig && ImGui::TreeNode("Edit Draw Config")) {
             char* buffer = (char*)malloc(100);
             memset(buffer, 0, 100);
@@ -88,6 +113,21 @@ void config_editor::drawSettingsWindow() {
             ImGui::InputFloat("Bomb Scale", &m_editConfig->bombIconScale);
 
             ImGui::TreePop();
+        }
+
+        ImGui::InputInt("Gamestate Integration Port", &m_gamestatePort, 1, 100);
+
+        if (ImGui::Button("Save config")) {
+            std::ofstream fs("config.json", std::ios::trunc);
+
+            nlohmann::json configJson;
+            configJson["maps"] = mapinfo_to_json(*m_mapConfigs);
+            configJson["configs"] = draw_config_to_json(*m_drawConfigs);
+            configJson["gamestatePort"] = m_gamestatePort;
+
+            fs << configJson.dump(4);
+
+            fs.close();
         }
 
         ImGui::End();

@@ -11,18 +11,18 @@
 
 class config_editor {
 public:
-    config_editor(std::vector<mapinfo>* mapConfigs, std::vector<draw_config>* drawConfigs)
+    config_editor(std::vector<mapinfo>* mapConfigs, std::vector<draw_config>* drawConfigs, int gamestatePort)
     : m_mapConfigs(mapConfigs), m_drawConfigs(drawConfigs), m_drawWindow(false)
-    , m_editMap(nullptr), m_editConfig(nullptr) {}
+     ,m_editConfig(nullptr), m_gamestatePort(gamestatePort) {}
 
-    void drawSettingsWindow();
+    void drawSettingsWindow(const sf::RenderWindow& window);
     void showWindow();
 private:
     std::vector<mapinfo>* m_mapConfigs;
     std::vector<draw_config>* m_drawConfigs;
 
-    mapinfo* m_editMap;
     draw_config* m_editConfig;
+    int m_gamestatePort;
 
     bool m_drawWindow;
 };
