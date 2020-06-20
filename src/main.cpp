@@ -444,7 +444,7 @@ int main()
                     if (loadedMap != nullptr) delete loadedMap;
                     loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
                     interp.currentlyLoadedMap = loadedMap;
-                    window.setView(loadedMap->map.standardView.getSFMLView());
+                    if (loadedMap != nullptr) window.setView(loadedMap->map.standardView.getSFMLView());
                 }
             }
 
