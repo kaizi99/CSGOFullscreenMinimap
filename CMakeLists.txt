@@ -26,7 +26,7 @@ if (UNIX)
 	find_library(OpenGL OpenGL REQUIRED)
 endif()
 
-add_library(imgui STATIC deps/imgui/imgui.cpp deps/imgui/imgui_demo.cpp deps/imgui/imgui_draw.cpp deps/imgui/imgui_widgets.cpp)
+add_library(imgui STATIC deps/imgui/imgui.cpp deps/imgui/imgui_demo.cpp deps/imgui/imgui_draw.cpp deps/imgui/imgui_widgets.cpp deps/imgui/imgui_stdlib.cpp)
 include_directories(deps/imgui)
 
 target_link_libraries(${PROJECT_NAME} imgui sfml-network sfml-graphics sfml-window sfml-audio sfml-system)

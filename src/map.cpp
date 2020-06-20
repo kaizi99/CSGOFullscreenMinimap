@@ -15,6 +15,32 @@
 
 #include "map.h"
 
+view parseView(const nlohmann::json& input) {
+    view v;
+
+    v.centerX = input["centerX"].get<float>();
+    v.centerY = input["centerY"].get<float>();
+    v.width = input["width"].get<float>();
+    v.height = input["height"].get<float>();
+
+    return v;
+}
+
+nlohmann::json encodeView(const view& v) {
+    nlohmann::json j;
+
+    j["centerX"] = v.centerX;
+    j["centerY"] = v.centerY;
+    j["width"] = v.width;
+    j["height"] = v.height;
+
+    return j;
+}
+
+sf::View view::getSFMLView() {
+    return sf::View(sf::Vector2f(centerX, centerY), sf::Vector2f(width, height));
+}
+
 std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
     std::vector<mapinfo> returnVector;
 
@@ -27,10 +53,16 @@ std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
         info.upperLeft.y = map.value()["upperLeft"]["y"].get<float>();
         info.scale = map.value()["scale"].get<float>();
 
+        info.standardView = parseView(map.value()["standardView"]);
+        info.aSiteView = parseView(map.value()["aSiteView"]);
+        info.bSiteView = parseView(map.value()["bSiteView"]);
+
         if (!map.value()["lowerLayerName"].is_null()) {
             info.hasTwoLayers = true;
             info.lowerLayerName = map.value()["lowerLayerName"].get<std::string>();
             info.cutoff = map.value()["cutoff"].get<float>();
+            info.lowerLayerOffset.x = map.value()["lowerOffset"]["x"].get<float>();
+            info.lowerLayerOffset.y = map.value()["lowerOffset"]["y"].get<float>();
         } else {
             info.hasTwoLayers = false;
             info.cutoff = 0.0f;
@@ -57,6 +89,8 @@ nlohmann::json mapinfo_to_json(std::vector<mapinfo> input) {
         if (info.hasTwoLayers) {
             mapJson["lowerLayerName"] = info.lowerLayerName;
             mapJson["cutoff"] = info.cutoff;
+            mapJson["lowerOffset"]["x"] = info.lowerLayerOffset.x;
+            mapJson["lowerOffset"]["y"] = info.lowerLayerOffset.y;
         }
 
         returnJson[info.name] = mapJson;
@@ -96,7 +130,7 @@ loadedMap* loadMap(std::string map, const std::vector<mapinfo>& maps, sf::Render
         returnMap->mapSpriteLower = sf::Sprite(returnMap->mapTextureLower);
         
         if (config.drawTwoMaps) {
-            returnMap->mapSpriteLower.setPosition(sf::Vector2f(1024, 0));
+            returnMap->mapSpriteLower.setPosition(selectedMap.lowerLayerOffset);
         }
     }
 

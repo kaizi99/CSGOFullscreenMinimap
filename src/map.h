@@ -19,6 +19,15 @@
 
 #include "draw_config.h"
 
+struct view {
+    float centerX;
+    float centerY;
+    float width;
+    float height;
+
+    sf::View getSFMLView();
+};
+
 struct mapinfo {
     std::string name;
     std::string radarName;
@@ -27,10 +36,16 @@ struct mapinfo {
     bool hasTwoLayers;
     std::string lowerLayerName;
     float cutoff;
+    sf::Vector2f lowerLayerOffset;
+    view standardView;
+    view aSiteView;
+    view bSiteView;
 };
 
 std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input);
 nlohmann::json mapinfo_to_json(std::vector<mapinfo> input);
+
+nlohmann::json encodeView(const view& v);
 
 struct loadedMap {
     mapinfo map;

@@ -97,6 +97,7 @@ void imgui_sfml_process_event(const sf::Event& event)
 void imgui_sfml_begin_frame(const sf::RenderWindow& window, float deltaTime)
 {
 	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
 
 	sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
@@ -113,16 +114,15 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 	ImGui::EndFrame();
 	ImGui::Render();
 
+	ImDrawData* draw_data = ImGui::GetDrawData();
+
 	sf::View oldView = window.getView();
 
 	sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
 	window.setView(igview);
 
-	ImDrawData* draw_data = ImGui::GetDrawData();
-
 	ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
-    //ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-	ImVec2 clip_scale(1, 1);
+	ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
 	for (int n = 0; n < draw_data->CmdListsCount; n++)
 	{
@@ -160,31 +160,30 @@ void imgui_sfml_end_frame(sf::RenderWindow& window)
 				sf::RenderStates state;
 				state.texture = texture;
 
-				//glEnable(GL_SCISSOR_TEST);
+				glEnable(GL_SCISSOR_TEST);
 
 				// Project scissor/clipping rectangles into framebuffer space
-                ImVec4 clip_rect;
-                clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
-                clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
-                clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
-                clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
+				ImVec4 clip_rect;
+				clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
+				clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
+				clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
+				clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
 
 				int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
-    			int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+				int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
 
 				if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
-                {
-					/*
+				{
 					bool clip_origin_lower_left = true;
-                    // Apply scissor/clipping rectangle
-                    if (clip_origin_lower_left)
-                        glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
-                    else
-                        glScissor((int)clip_rect.x, (int)clip_rect.y, (int)clip_rect.z, (int)clip_rect.w); // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
-					*/
+					// Apply scissor/clipping rectangle
+					if (clip_origin_lower_left)
+						glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
+					else
+						glScissor((int)clip_rect.x, (int)clip_rect.y, (int)clip_rect.z, (int)clip_rect.w); // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
+
 					window.draw(vbuffer, state);
 				}
-				//glDisable(GL_SCISSOR_TEST);
+				glDisable(GL_SCISSOR_TEST);
 
 				ImVec2 pos = draw_data->DisplayPos;
 			}

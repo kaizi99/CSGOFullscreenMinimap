@@ -27,6 +27,7 @@ struct draw_config {
     float circleSize;
     int observerTextSize;
     float bombIconScale;
+    bool drawBauchbinde;
 };
 
 std::vector<draw_config> draw_config_parse_json(nlohmann::json input);
