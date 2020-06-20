@@ -141,7 +141,6 @@ int main()
     deltaTimeClock.restart();
 
     float deltaTime = 0.16;
-    bool debugGrenades = true;
 
     // Start the game loop
     while (window.isOpen())
@@ -158,8 +157,25 @@ int main()
                     window.close();
                 // Switch the Settings window
                 else if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::T) {
+                    switch (event.key.code) {
+                    case sf::Keyboard::T:
                         drawImGUI = !drawImGUI;
+                        break;
+                    case sf::Keyboard::A:
+                        if (loadedMap) {
+                            window.setView(loadedMap->map.aSiteView.getSFMLView());
+                        }
+                        break;
+                    case sf::Keyboard::S:
+                        if (loadedMap) {
+                            window.setView(loadedMap->map.standardView.getSFMLView());
+                        }
+                        break;
+                    case sf::Keyboard::D:
+                        if (loadedMap) {
+                            window.setView(loadedMap->map.bSiteView.getSFMLView());
+                        }
+                        break;
                     }
                 }
                 // Handle resize properly
@@ -219,7 +235,7 @@ int main()
                     }
                 }
 
-                auto grenades = processGrenades(gs, &debugGrenades, grenadeTextures, players);
+                auto grenades = processGrenades(gs, grenadeTextures, players);
 
                 // Sort all dead players under the alive players to draw the alive player always above dead players
                 std::sort(players.begin(), players.end(), [](player a, player b) { return a.dead && !b.dead; });
@@ -335,6 +351,7 @@ int main()
                         window.draw(p.playerNameText);
                 }
 
+                // Draw the bomb
                 if (b.state != bomb_state::UNDEFINED) {
                     sf::Vector2f bPos = b.minimapPosition;
 
@@ -373,14 +390,12 @@ int main()
                     window.draw(bombSprite);
                 }
 
-                // Bauchbinde
+                // Draw the footer
                 if (activeConfig.drawBauchbinde) {
                     sf::View oldView = window.getView();
 
                     sf::View igview(sf::FloatRect({ 0, 0 }, { (float)window.getSize().x, (float)window.getSize().y }));
                     window.setView(igview);
-
-                    
 
                     sf::RectangleShape bauchbindeShape;
                     bauchbindeShape.setSize(sf::Vector2f(1024, 200));
@@ -406,7 +421,6 @@ int main()
 
                         window.draw(bauchbindeText);
                         window.draw(pickedByLogoSprite);
-                        
                     } else {
                         sf::Text bauchbindeText(loadedMap->map.name, bauchbindeFont);
                         bauchbindeText.setCharacterSize(60);
@@ -427,6 +441,7 @@ int main()
                     if (loadedMap != nullptr) delete loadedMap;
                     loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
                     interp.currentlyLoadedMap = loadedMap;
+                    window.setView(loadedMap->map.standardView.getSFMLView());
                 }
             }
 
@@ -484,6 +499,23 @@ int main()
                 }
 
                 ImGui::Checkbox("Draw picked by", &drawPickedBy);
+                
+                if (ImGui::Button("Encode View to clipboard")) {
+                    std::string clipboardString;
+                    
+                    sf::Vector2f center = window.getView().getCenter();
+                    sf::Vector2f size = window.getView().getSize();
+
+                    view v;
+                    v.width = size.x;
+                    v.height = size.y;
+                    v.centerX = center.x;
+                    v.centerY = center.y;
+
+                    clipboardString = encodeView(v).dump(4);
+
+                    sf::Clipboard::setString(clipboardString);
+                }
 
                 ImGui::End();
             }

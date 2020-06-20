@@ -8,7 +8,25 @@
         "x": -4831.0,
         "y": 1781.0
       },
-      "scale": 5.2
+      "scale": 5.2,
+      "standardView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "aSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "bSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      }
     },
     "de_dust2": {
       "name": "de_dust2",
@@ -17,7 +35,25 @@
         "x": -2476.0,
         "y": 3239.0
       },
-      "scale": 4.4
+      "scale": 4.4,
+      "standardView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "aSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "bSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      }
     },
     "de_inferno": {
       "name": "de_inferno",
@@ -26,7 +62,25 @@
         "x": -2087.0,
         "y": 3870.0
       },
-      "scale": 4.9
+      "scale": 4.9,
+      "standardView": {
+        "centerX": 520.0,
+        "centerY": 559.0,
+        "height": 1024.0,
+        "width": 1024.0
+      },
+      "aSiteView": {
+        "centerX": 713.0,
+        "centerY": 705.0,
+        "height": 592.6290283203125,
+        "width": 592.6290283203125
+      },
+      "bSiteView": {
+        "centerX": 652.0,
+        "centerY": 328.0,
+        "height": 665.1279296875,
+        "width": 665.1279296875
+      }
     },
     "de_mirage": {
       "name": "de_mirage",
@@ -35,7 +89,25 @@
         "x": -3230.0,
         "y": 1713.0
       },
-      "scale": 5
+      "scale": 5,
+      "standardView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "aSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "bSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      }
     },
     "de_train": {
       "name": "de_train",
@@ -44,7 +116,25 @@
         "x": -2477.0,
         "y": 2392.0
       },
-      "scale": 4.7
+      "scale": 4.7,
+      "standardView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "aSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "bSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      }
     },
     "de_nuke": {
       "name": "de_nuke",
@@ -59,6 +149,24 @@
       "lowerOffset": {
         "x": 330,
         "y": 300
+      },
+      "standardView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "aSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
+      },
+      "bSiteView": {
+        "centerX": 512,
+        "centerY": 512,
+        "width": 1024,
+        "height": 1024
       }
     },
     "de_vertigo": {
@@ -74,6 +182,24 @@
       "lowerOffset": {
         "x": 1024,
         "y": 0
+      },
+      "standardView": {
+        "centerX": 456.0,
+        "centerY": 547.0,
+        "height": 821.1456298828125,
+        "width": 821.1456298828125
+      },
+      "aSiteView": {
+        "centerX": 579.0,
+        "centerY": 674.0,
+        "height": 533.3660888671875,
+        "width": 533.3660888671875
+      },
+      "bSiteView": {
+        "centerX": 340.0,
+        "centerY": 379.0,
+        "height": 533.3660888671875,
+        "width": 533.3660888671875
       }
     }
   },

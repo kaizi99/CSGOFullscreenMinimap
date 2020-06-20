@@ -103,4 +103,4 @@ struct decoyGrenade : grenade {
 	void render(sf::RenderWindow& window, const mapinfo& mapinfo, const draw_config& drawConfig) override;
 };
 
-std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug, std::shared_ptr<grenadeResources> resources, const std::vector<player>& players);
+std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, std::shared_ptr<grenadeResources> resources, const std::vector<player>& players);

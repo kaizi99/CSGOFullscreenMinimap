@@ -15,6 +15,32 @@
 
 #include "map.h"
 
+view parseView(const nlohmann::json& input) {
+    view v;
+
+    v.centerX = input["centerX"].get<float>();
+    v.centerY = input["centerY"].get<float>();
+    v.width = input["width"].get<float>();
+    v.height = input["height"].get<float>();
+
+    return v;
+}
+
+nlohmann::json encodeView(const view& v) {
+    nlohmann::json j;
+
+    j["centerX"] = v.centerX;
+    j["centerY"] = v.centerY;
+    j["width"] = v.width;
+    j["height"] = v.height;
+
+    return j;
+}
+
+sf::View view::getSFMLView() {
+    return sf::View(sf::Vector2f(centerX, centerY), sf::Vector2f(width, height));
+}
+
 std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
     std::vector<mapinfo> returnVector;
 
@@ -26,6 +52,10 @@ std::vector<mapinfo> mapinfo_parse_json(nlohmann::json input) {
         info.upperLeft.x = map.value()["upperLeft"]["x"].get<float>();
         info.upperLeft.y = map.value()["upperLeft"]["y"].get<float>();
         info.scale = map.value()["scale"].get<float>();
+
+        info.standardView = parseView(map.value()["standardView"]);
+        info.aSiteView = parseView(map.value()["aSiteView"]);
+        info.bSiteView = parseView(map.value()["bSiteView"]);
 
         if (!map.value()["lowerLayerName"].is_null()) {
             info.hasTwoLayers = true;

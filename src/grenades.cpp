@@ -20,17 +20,7 @@
 
 #include <iostream>
 
-std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, bool* debug, std::shared_ptr<grenadeResources> resources, const std::vector<player>& players) {
-	/*
-	if (debug) {
-		if (ImGui::Begin("Grenade Debugging", debug)) {
-			ImGui::TextWrapped("%s", info["grenades"].dump(4).c_str());
-		}
-
-		ImGui::End();
-	}
-	*/
-
+std::unordered_map<std::string, std::shared_ptr<grenade>> processGrenades(nlohmann::json info, std::shared_ptr<grenadeResources> resources, const std::vector<player>& players) {
 	std::unordered_map<std::string, bool> steamIDToTeam;
 	for (const auto& p : players) {
 		steamIDToTeam[p.steamID] = p.isCT;
