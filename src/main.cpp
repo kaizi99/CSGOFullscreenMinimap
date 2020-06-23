@@ -29,6 +29,7 @@
 #include "draw_config.h"
 #include "bomb.h"
 #include "grenades.h"
+#include "config_editor.h"
 
 #include <imgui_stdlib.h>
 
@@ -56,6 +57,8 @@ int main()
     std::vector<draw_config> drawConfigs = draw_config_parse_json(configJson["configs"]);
 
     int gamestatePort = configJson["gamestatePort"].get<int>();
+
+    config_editor confed(&mapinfos, &drawConfigs, gamestatePort);
 
     draw_config activeConfig = drawConfigs[0];
 
@@ -441,7 +444,7 @@ int main()
                     if (loadedMap != nullptr) delete loadedMap;
                     loadedMap = loadMap(gs["map"]["name"].get<std::string>(), mapinfos, window, activeConfig);
                     interp.currentlyLoadedMap = loadedMap;
-                    window.setView(loadedMap->map.standardView.getSFMLView());
+                    if (loadedMap != nullptr) window.setView(loadedMap->map.standardView.getSFMLView());
                 }
             }
 
@@ -474,6 +477,10 @@ int main()
                         triangle.setOrigin(activeConfig.circleSize, activeConfig.circleSize * 2);
                         bombSprite.setScale(activeConfig.bombIconScale, activeConfig.bombIconScale);
                     }
+                }
+
+                if (ImGui::Button("Open Config Editor")) {
+                    confed.showWindow();
                 }
 
                 if (ImGui::Button("Copy gamestate clipboard")) {
@@ -519,6 +526,8 @@ int main()
 
                 ImGui::End();
             }
+
+            confed.drawSettingsWindow(window);
 
             imgui_sfml_end_frame(window);
 
