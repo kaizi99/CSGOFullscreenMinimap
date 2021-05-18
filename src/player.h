@@ -33,6 +33,9 @@ struct player {
     std::string steamID;
     sf::Text playerNameText;
 
+    bool isShooting;
+    int currentGunAmmo;
+
     player(nlohmann::json playerJson, std::string steamid, nlohmann::json observedPlayerJson, sf::Font& playerFont, loadedMap* loadedMap);
 
     player interpolate(player b, float t);

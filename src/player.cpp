@@ -105,6 +105,17 @@ player::player(nlohmann::json playerJson, std::string steamid, nlohmann::json ob
     std::string forwardString = playerJson["forward"];
     sscanf(forwardString.c_str(), "%f, %f, %f", &forward.x, &forward.y, &forward.z);
     rotation = calculateAngle(forward);
+
+    currentGunAmmo = 0;
+    for (auto weapon : playerJson["weapons"].items()) {
+        if (weapon.value()["state"] == "active") {
+            if (!weapon.value()["ammo_clip"].is_null()) {
+                currentGunAmmo = weapon.value()["ammo_clip"];
+            }
+        }
+    }
+
+    isShooting = false;
 }
 
 player player::interpolate(player b, float t)
@@ -112,6 +123,10 @@ player player::interpolate(player b, float t)
     b.minimapPosition = (1.0f - t) * minimapPosition + t * b.minimapPosition;
     b.forward = (1.0f - t) * forward + t * b.forward;
     b.rotation = calculateAngle(b.forward);
+
+    if (b.currentGunAmmo == currentGunAmmo - 1) {
+        b.isShooting = true;
+    }
 
     return b;
 }

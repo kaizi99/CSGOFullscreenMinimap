@@ -64,7 +64,7 @@ int main()
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(1024, 1024), "Fullscreen CSGO Map by kaizi99");
-    window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
     
     // Setup the cross sprite
     sf::Texture cross;
@@ -214,6 +214,9 @@ int main()
 
             oldMousePosition = sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 
+            if (deltaTime == 0.0f) {
+                deltaTime = 0.016f;
+            }
             imgui_sfml_begin_frame(window, deltaTime);
 
             // Clear screen
@@ -315,6 +318,12 @@ int main()
                             if (p.currentlyObserved) {
                                 // Draw a white circle outline if the player is currenlty observed
                                 playerCircle.setOutlineColor(sf::Color::White);
+                                window.draw(playerCircle);
+                                playerCircle.setOutlineColor(sf::Color::Black);
+                            }
+                            if (p.isShooting) {
+                                // Draw a red outline if the player is shooting
+                                playerCircle.setOutlineColor(sf::Color::Red);
                                 window.draw(playerCircle);
                                 playerCircle.setOutlineColor(sf::Color::Black);
                             }
