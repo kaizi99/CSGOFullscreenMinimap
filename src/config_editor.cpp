@@ -109,6 +109,7 @@ void config_editor::drawSettingsWindow(const sf::RenderWindow& window) {
             ImGui::InputInt("Name Size", &m_editConfig->nameCharacterSize);
             ImGui::InputInt("Name Size (dead)", &m_editConfig->nameDeadCharacterSize);
             ImGui::InputFloat("Circle Size", &m_editConfig->circleSize, 1);
+            ImGui::InputFloat("Circle Outline", &m_editConfig->circleOutlineSize);
             ImGui::InputInt("Observerslot Text Size", &m_editConfig->observerTextSize);
             ImGui::InputFloat("Bomb Scale", &m_editConfig->bombIconScale);
 

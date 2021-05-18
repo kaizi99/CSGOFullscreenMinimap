@@ -25,6 +25,7 @@ struct draw_config {
     int nameCharacterSize;
     int nameDeadCharacterSize;
     float circleSize;
+    float circleOutlineSize;
     int observerTextSize;
     float bombIconScale;
     bool drawBauchbinde;

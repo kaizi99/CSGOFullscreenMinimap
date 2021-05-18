@@ -310,6 +310,7 @@ int main()
                             triangle.setFillColor(sf::Color::White);
                         }
 
+                        playerCircle.setOutlineThickness(activeConfig.circleOutlineSize);
                         playerCircle.setFillColor(playerColor);
                         window.draw(playerCircle);
 

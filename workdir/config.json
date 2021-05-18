@@ -3,8 +3,9 @@
         "Minimap": {
             "bauchbinde": true,
             "bombIconScale": 2.0,
+            "circleOutlineSize": 4.0,
             "circleSize": 20.0,
-            "drawName": false,
+            "drawName": true,
             "drawTwoMaps": true,
             "nameCharacterSize": 0,
             "nameDeadCharacterSize": 0,
@@ -13,12 +14,13 @@
         "Observer": {
             "bauchbinde": false,
             "bombIconScale": 1.0,
-            "circleSize": 10.0,
+            "circleOutlineSize": 2.0,
+            "circleSize": 13.0,
             "drawName": true,
             "drawTwoMaps": true,
-            "nameCharacterSize": 15,
+            "nameCharacterSize": 16,
             "nameDeadCharacterSize": 12,
-            "observerTextSize": 15
+            "observerTextSize": 18
         }
     },
     "gamestatePort": 1338,
@@ -120,8 +122,8 @@
             "cutoff": 495.0,
             "lowerLayerName": "de_nuke_lower_radar.png",
             "lowerOffset": {
-                "x": 330.0,
-                "y": 300.0
+                "x": -400.0,
+                "y": 30.0
             },
             "name": "de_nuke",
             "radarName": "de_nuke_radar.png",
@@ -177,8 +179,14 @@
                 "height": 1024.0,
                 "width": 1024.0
             },
+            "cutoff": 0.0,
+            "lowerLayerName": "de_train_radar.png",
+            "lowerOffset": {
+                "x": 0.0,
+                "y": 0.0
+            },
             "name": "de_train",
-            "radarName": "de_train_radar.png",
+            "radarName": "de_train_upper_radar.png",
             "scale": 4.699999809265137,
             "standardView": {
                 "centerX": 512.0,
@@ -193,31 +201,31 @@
         },
         "de_vertigo": {
             "aSiteView": {
-                "centerX": 512.0,
-                "centerY": 512.0,
-                "height": 1024.0,
-                "width": 1024.0
+                "centerX": 470.0,
+                "centerY": 515.0,
+                "height": 833.4783325195313,
+                "width": 833.4783325195313
             },
             "bSiteView": {
-                "centerX": 512.0,
-                "centerY": 512.0,
-                "height": 1024.0,
-                "width": 1024.0
+                "centerX": 470.0,
+                "centerY": 1220.0,
+                "height": 761.3969116210938,
+                "width": 761.3969116210938
             },
             "cutoff": -11700.0,
             "lowerLayerName": "de_vertigo_lower_radar.png",
             "lowerOffset": {
-                "x": 1024.0,
-                "y": 0.0
+                "x": 0.0,
+                "y": 700.0
             },
             "name": "de_vertigo",
             "radarName": "de_vertigo_radar.png",
             "scale": 4.0,
             "standardView": {
-                "centerX": 512.0,
-                "centerY": 512.0,
-                "height": 1024.0,
-                "width": 1024.0
+                "centerX": 504.0,
+                "centerY": 840.0,
+                "height": 1457.0394287109375,
+                "width": 1248.8909912109375
             },
             "upperLeft": {
                 "x": -3168.0,
